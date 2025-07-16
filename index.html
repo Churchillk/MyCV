@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberDev Portfolio</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #0f0, transparent);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 0.15em solid #0f0;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        .name {
+            font-size: 1.5em;
+            margin: 10px 0;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            letter-spacing: 2px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .name::before, .name::after {
+            content: '//';
+            color: #0a0;
+            margin: 0 10px;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #0f0; }
+        }
+
+        h2 {
+            color: #0a0;
+            border-bottom: 1px dashed #0a0;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 1.3em;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        h2::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: #0f0;
+        }
+
+        a {
+            color: #0f0;
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        a:hover {
+            color: #fff;
+            text-shadow: 0 0 8px #0f0;
+        }
+
+        a::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            bottom: 0;
+            left: 0;
+            background-color: #0f0;
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s;
+        }
+
+        a:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .skill {
+            background-color: rgba(17, 17, 17, 0.7);
+            padding: 8px 15px;
+            border: 1px solid #0a0;
+            border-radius: 3px;
+            transition: all 0.3s;
+            font-size: 0.9em;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.1);
+        }
+
+        .skill:hover {
+            background-color: rgba(34, 34, 34, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .project {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-left: 3px solid #0f0;
+            background-color: rgba(17, 17, 17, 0.7);
+            transition: all 0.3s;
+            border-radius: 0 5px 5px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .project:hover {
+            background-color: rgba(34, 34, 34, 0.9);
+            transform: translateX(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .project h3 {
+            margin-top: 0;
+            color: #0f0;
+            font-size: 1.2em;
+        }
+
+        .project p {
+            margin: 10px 0;
+        }
+
+        .project a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border: 1px solid #0f0;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .project a:hover {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+
+        .contact-item {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .contact-item::before {
+            content: '-';
+            position: absolute;
+            left: 5px;
+            color: #0f0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            font-size: 0.9em;
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #0f0, transparent);
+        }
+
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+            letter-spacing: 1px;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+            }
+            to {
+                text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+            }
+        }
+
+        .matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        #cursor {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            from, to { opacity: 1 }
+            50% { opacity: 0 }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .name {
+                font-size: 1.2em;
+            }
+
+            .skills {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix rain effect -->
+    <canvas id="matrix" class="matrix"></canvas>
+
+    <div class="container">
+        <header>
+            <center><h1><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ whoami</h1></center>
+            <div class="name">Odhiambo Churchill</div>
+            <p class="glow">[ Security Researcher | Full-Stack Developer | Ethical Hacker ]</p>
+        </header>
+
+        <section id="about">
+            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ cat about.txt</h2>
+            <p>Hello, world! I'm a cybersecurity enthusiast and software developer with a passion for breaking and building systems.</p>
+            <p>With over 5 years of experience in penetration testing and secure software development, I specialize in identifying vulnerabilities and creating robust solutions.</p>
+        </section>
+
+        <section id="skills">
+            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ ls skills/</h2>
+            <div class="skills">
+                <span class="skill">Penetration Testing</span>
+                <span class="skill">Python</span>
+                <span class="skill">JavaScript</span>
+                <span class="skill">Node.js</span>
+                <span class="skill">C/C++</span>
+                <span class="skill">Reverse Engineering</span>
+                <span class="skill">Web Exploitation</span>
+                <span class="skill">Cryptography</span>
+                <span class="skill">Linux</span>
+                <span class="skill">Bash Scripting</span>
+                <span class="skill">Network Security</span>
+                <span class="skill">SQL/NoSQL</span>
+                <span class="skill">Postgresql</span>
+                <span class="skill">Django</span>
+            </div>
+        </section>
+
+        <section id="projects">
+            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ cd projects/</h2>
+
+            <div class="project">
+                <h3>SecureAuth Framework</h3>
+                <p>A multi-factor authentication system with biometric verification and hardware token support.</p>
+                <p><strong>Tech:</strong> Python, Flask, JWT, RSA</p>
+                <a href="#">[View Source]</a>
+            </div>
+
+            <div class="project">
+                <h3>NetVigil</h3>
+                <p>Network monitoring tool with real-time intrusion detection and automated threat response.</p>
+                <p><strong>Tech:</strong> C++, libpcap, Machine Learning</p>
+                <a href="#">[View Demo]</a>
+            </div>
+
+            <div class="project">
+                <h3>CryptoVault</h3>
+                <p>Command-line password manager with military-grade encryption and secure cloud sync.</p>
+                <p><strong>Tech:</strong> Rust, AES-256, SQLite</p>
+                <a href="#">[Download]</a>
+            </div>
+        </section>
+
+        <section id="contact">
+            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ ./contact.sh</h2>
+            <div class="contact-item">Email: <a href="mailto:contact@cyberdev.io">contact@cyberdev.io</a></div>
+            <div class="contact-item">Github: <a href="https://github.com/Churchillk" target="_blank">github.com/Churchillk</a></div>
+            <div class="contact-item">LinkedIn: <a href="https://linkedin.com/in/cyberdev" target="_blank">linkedin.com/in/cyberdev</a></div>
+            <div class="contact-item">PGP Key: <a href="#">0xABCDEF1234567890</a></div>
+        </section>
+
+        <footer>
+            <p><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ <span id="cursor">_</span></p>
+            <p>&copy; 2025 CyberDev. All systems operational.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Matrix rain effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const nums = '0123456789';
+        const symbols = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+
+        const alphabet = katakana + latin + nums + symbols;
+
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+
+        const rainDrops = [];
+
+        for (let x = 0; x < columns; x++) {
+            rainDrops[x] = Math.random() * -50;
+        }
+
+        const draw = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0f0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                const y = rainDrops[i] * fontSize;
+
+                // Only draw if the drop is visible
+                if (y > 0 && y < canvas.height) {
+                    // Fade out at the bottom
+                    const opacity = 1 - (y / canvas.height);
+                    ctx.fillStyle = `rgba(0, 255, 0, ${opacity})`;
+                    ctx.fillText(text, i * fontSize, y);
+                }
+
+                // Reset drop when it reaches the bottom with some randomness
+                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        };
+
+        setInterval(draw, 30);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Add a subtle hover effect to sections
+        document.querySelectorAll('section').forEach(section => {
+            section.addEventListener('mouseenter', () => {
+                section.style.transform = 'translateX(5px)';
+            });
+
+            section.addEventListener('mouseleave', () => {
+                section.style.transform = 'translateX(0)';
+            });
+        });
+    </script>
+</body>
+</html>
