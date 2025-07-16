@@ -13,6 +13,7 @@
             padding: 0;
             line-height: 1.6;
             overflow-x: hidden;
+            font-size: 16px;
         }
 
         .container {
@@ -42,28 +43,33 @@
         }
 
         h1 {
-            font-size: 2.5em;
+            font-size: clamp(1.2rem, 4vw, 2.5rem);
             margin: 0;
             overflow: hidden;
             white-space: nowrap;
             border-right: 0.15em solid #0f0;
             animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
         }
 
         .name {
-            font-size: 1.5em;
+            font-size: clamp(1rem, 3vw, 1.5rem);
             margin: 10px 0;
             color: #0f0;
             text-shadow: 0 0 5px #0f0;
             letter-spacing: 2px;
             position: relative;
             display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
         }
 
         .name::before, .name::after {
             content: '//';
             color: #0a0;
             margin: 0 10px;
+            font-family: 'Courier New', monospace;
         }
 
         @keyframes typing {
@@ -81,9 +87,11 @@
             border-bottom: 1px dashed #0a0;
             padding-bottom: 5px;
             margin-top: 30px;
-            font-size: 1.3em;
+            font-size: clamp(0.9rem, 3vw, 1.3rem);
             position: relative;
             padding-left: 15px;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
         }
 
         h2::before {
@@ -91,6 +99,11 @@
             position: absolute;
             left: 0;
             color: #0f0;
+            font-family: 'Courier New', monospace;
+        }
+
+        p, a, span, div {
+            font-family: 'Courier New', monospace;
         }
 
         a {
@@ -98,6 +111,7 @@
             text-decoration: none;
             transition: all 0.3s;
             position: relative;
+            font-family: 'Courier New', monospace;
         }
 
         a:hover {
@@ -136,8 +150,9 @@
             border: 1px solid #0a0;
             border-radius: 3px;
             transition: all 0.3s;
-            font-size: 0.9em;
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
             box-shadow: 0 0 5px rgba(0, 255, 0, 0.1);
+            font-family: 'Courier New', monospace;
         }
 
         .skill:hover {
@@ -148,7 +163,7 @@
 
         .project {
             margin-bottom: 20px;
-            padding: 20px;
+            padding: 15px;
             border-left: 3px solid #0f0;
             background-color: rgba(17, 17, 17, 0.7);
             transition: all 0.3s;
@@ -158,18 +173,21 @@
 
         .project:hover {
             background-color: rgba(34, 34, 34, 0.9);
-            transform: translateX(10px);
+            transform: translateX(5px);
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
         }
 
         .project h3 {
             margin-top: 0;
             color: #0f0;
-            font-size: 1.2em;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
         }
 
         .project p {
             margin: 10px 0;
+            font-size: clamp(0.8rem, 2vw, 1rem);
         }
 
         .project a {
@@ -179,6 +197,7 @@
             border: 1px solid #0f0;
             border-radius: 3px;
             transition: all 0.3s;
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
         }
 
         .project a:hover {
@@ -189,6 +208,7 @@
             margin-bottom: 15px;
             padding-left: 20px;
             position: relative;
+            font-size: clamp(0.8rem, 2vw, 1rem);
         }
 
         .contact-item::before {
@@ -202,7 +222,7 @@
             text-align: center;
             margin-top: 50px;
             padding: 20px;
-            font-size: 0.9em;
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
             position: relative;
         }
 
@@ -220,6 +240,8 @@
         .glow {
             animation: glow 2s ease-in-out infinite alternate;
             letter-spacing: 1px;
+            font-size: clamp(0.7rem, 2vw, 1rem);
+            font-family: 'Courier New', monospace;
         }
 
         @keyframes glow {
@@ -243,6 +265,7 @@
 
         #cursor {
             animation: blink 1s step-end infinite;
+            font-family: 'Courier New', monospace;
         }
 
         @keyframes blink {
@@ -251,21 +274,45 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .container {
-                padding: 15px;
+                padding: 10px;
             }
 
-            h1 {
-                font-size: 1.8em;
-            }
-
-            .name {
-                font-size: 1.2em;
+            header {
+                padding: 15px 0;
+                margin-bottom: 20px;
             }
 
             .skills {
                 justify-content: center;
+            }
+
+            .project {
+                padding: 10px;
+            }
+
+            .contact-item {
+                padding-left: 15px;
+            }
+
+            footer {
+                margin-top: 30px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            body {
+                font-size: 14px;
+            }
+
+            .skill {
+                padding: 5px 10px;
+            }
+
+            .project {
+                padding: 8px;
             }
         }
     </style>
