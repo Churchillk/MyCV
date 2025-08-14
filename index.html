@@ -44,6 +44,7 @@
             background-color: var(--bg-dark);
             color: var(--primary);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         /* Responsive Layout */
@@ -63,25 +64,31 @@
             display: flex;
             flex-direction: column;
             border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 10;
-            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        @media (min-width: 576px) {
-            .sidebar {
-                padding: 1.5rem;
-            }
+        .sidebar.active {
+            transform: translateY(0);
         }
 
         @media (min-width: 992px) {
             .sidebar {
                 width: 280px;
                 height: 100vh;
+                position: relative;
+                transform: none;
                 border-right: 1px solid var(--border-color);
                 border-bottom: none;
-                overflow-y: auto;
+                max-height: none;
+                box-shadow: none;
             }
         }
 
@@ -94,7 +101,7 @@
             text-align: center;
         }
 
-        @media (min-width: 992px) {
+        @media (min-width: 576px) {
             .sidebar-header {
                 margin-bottom: 2rem;
             }
@@ -138,6 +145,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         @media (min-width: 576px) {
@@ -155,6 +166,10 @@
             font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 0.75rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         @media (min-width: 576px) {
@@ -167,6 +182,10 @@
             font-size: 0.75rem;
             color: var(--text-muted);
             font-style: italic;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         @media (min-width: 576px) {
@@ -198,6 +217,7 @@
         @media (min-width: 992px) {
             .sidebar-nav ul {
                 display: block;
+                flex-wrap: nowrap;
             }
         }
 
@@ -338,13 +358,15 @@
             flex-direction: column;
             background-color: var(--bg-darker);
             position: relative;
-            min-height: 60vh;
+            min-height: calc(100vh - 60px);
+            margin-top: 60px;
         }
 
         @media (min-width: 992px) {
             .terminal-container {
                 height: 100vh;
                 overflow: hidden;
+                margin-top: 0;
             }
         }
 
@@ -356,6 +378,9 @@
             color: var(--text-muted);
             background-color: rgba(0, 0, 0, 0.2);
             border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         @media (min-width: 576px) {
@@ -513,6 +538,7 @@
             display: flex;
             align-items: center;
             font-size: 0.9rem;
+            flex-shrink: 0;
         }
 
         @media (min-width: 576px) {
@@ -533,6 +559,16 @@
 
         .terminal-prompt .dir {
             color: var(--primary-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+            display: inline-block;
+        }
+
+        @media (min-width: 768px) {
+            .terminal-prompt .dir {
+                max-width: 150px;
+            }
         }
 
         .terminal-input {
@@ -545,6 +581,7 @@
             outline: none;
             caret-color: var(--primary);
             padding: 0.25rem 0;
+            min-width: 0;
         }
 
         @media (min-width: 576px) {
@@ -561,6 +598,7 @@
             animation: blink 1s infinite;
             vertical-align: middle;
             margin-left: 2px;
+            flex-shrink: 0;
         }
 
         @media (min-width: 576px) {
@@ -753,6 +791,7 @@
             color: var(--secondary);
             position: relative;
             z-index: 1;
+            flex-shrink: 0;
         }
 
         @media (min-width: 576px) {
@@ -770,6 +809,7 @@
             position: relative;
             z-index: 1;
             font-size: 0.85rem;
+            flex-shrink: 0;
         }
 
         @media (min-width: 576px) {
@@ -1052,7 +1092,7 @@
 
         /* Mobile menu toggle */
         .menu-toggle {
-            display: none;
+            display: flex;
             position: fixed;
             top: 10px;
             right: 10px;
@@ -1068,28 +1108,30 @@
             color: var(--primary);
         }
 
-        @media (max-width: 991px) {
+        @media (min-width: 992px) {
             .menu-toggle {
-                display: flex;
+                display: none;
             }
-            
-            .sidebar {
-                transform: translateY(-100%);
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: auto;
-                max-height: 80vh;
-                overflow-y: auto;
-                z-index: 90;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            }
-            
-            .sidebar.active {
-                transform: translateY(0);
-            }
-            
+        }
+
+        /* Backdrop for mobile menu */
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 90;
+            display: none;
+        }
+
+        .sidebar-backdrop.active {
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 991px) {
             .sidebar-nav ul {
                 flex-direction: column;
             }
@@ -1098,11 +1140,33 @@
                 margin-top: 60px;
             }
         }
+
+        /* Better mobile input */
+        @media (max-width: 576px) {
+            .terminal-input-line {
+                padding: 0.5rem;
+            }
+            
+            .terminal-prompt {
+                font-size: 0.8rem;
+            }
+            
+            .terminal-input {
+                font-size: 0.8rem;
+            }
+            
+            .cursor {
+                height: 14px;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Matrix rain effect -->
     <canvas id="matrix-rain" class="matrix-rain"></canvas>
+
+    <!-- Mobile menu backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <!-- Mobile menu toggle -->
     <div class="menu-toggle" id="menu-toggle">
@@ -1393,6 +1457,7 @@
         const profilePic = document.getElementById('profile-pic');
         const menuToggle = document.getElementById('menu-toggle');
         const sidebar = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
         
         // State
         let currentDirectory = '~';
@@ -1424,17 +1489,15 @@
             terminalInput.addEventListener('keydown', handleKeyDown);
             
             // Menu toggle
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-                menuToggle.innerHTML = sidebar.classList.contains('active') ? 
-                    '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-            });
+            menuToggle.addEventListener('click', toggleSidebar);
+            sidebarBackdrop.addEventListener('click', toggleSidebar);
             
             // Close menu when clicking outside on mobile
             document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 991 && !sidebar.contains(e.target) {
-                    sidebar.classList.remove('active');
-                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                if (window.innerWidth <= 991 && 
+                    !sidebar.contains(e.target) && 
+                    e.target !== menuToggle) {
+                    closeSidebar();
                 }
             });
             
@@ -1458,7 +1521,31 @@
                 profilePic.style.transform = 'scale(1)';
                 profilePic.style.boxShadow = '0 0 15px rgba(0, 170, 255, 0.3)';
             });
+            
+            // Handle window resize
+            window.addEventListener('resize', handleResize);
+            handleResize();
         });
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            sidebarBackdrop.classList.toggle('active');
+            menuToggle.innerHTML = sidebar.classList.contains('active') ? 
+                '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+        }
+        
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            sidebarBackdrop.classList.remove('active');
+            menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+        
+        function handleResize() {
+            if (window.innerWidth >= 992) {
+                sidebar.style.transform = 'none';
+                sidebarBackdrop.classList.remove('active');
+            }
+        }
         
         // Matrix rain effect
         function initMatrixRain() {
@@ -1708,10 +1795,7 @@
             terminalOutput.scrollTop = terminalOutput.scrollHeight;
             
             // Close mobile menu after command
-            if (window.innerWidth <= 991) {
-                sidebar.classList.remove('active');
-                menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
-            }
+            closeSidebar();
             
             isProcessing = false;
         }
