@@ -3,465 +3,1692 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberDev Portfolio</title>
+    <title>Odhiambo Churchill - Developer Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            background-color: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-            overflow-x: hidden;
-            font-size: 16px;
+        :root {
+            --primary: #00ff00;
+            --primary-dark: #00cc00;
+            --secondary: #00aaff;
+            --bg-dark: #121212;
+            --bg-darker: #0a0a0a;
+            --bg-sidebar: #1a1a1a;
+            --text-light: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --border-color: #333;
+            --danger: #ff5555;
+            --warning: #ffbd2e;
+            --success: #27c93f;
+            --purple: #aa00ff;
+
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        @font-face {
+            font-family: 'Fira Code';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/woff2/FiraCode-Light.woff2') format('woff2');
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--primary);
+            overflow: hidden;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--secondary);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.5);
+        }
+
+        .name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .name i {
+            margin-right: 10px;
+            color: var(--secondary);
+        }
+
+        .title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .tagline {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+            text-align: center;
+        }
+
+        .sidebar-nav {
+            margin-top: auto;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            color: var(--text-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-nav li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background-color: var(--secondary);
+            transform: scaleY(0);
+            transform-origin: bottom;
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-nav li i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            color: var(--secondary);
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav li:hover {
+            background-color: rgba(0, 170, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .sidebar-nav li:hover::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-nav li:hover i {
+            transform: scale(1.1);
+        }
+
+        .sidebar-nav li.active {
+            background-color: rgba(0, 170, 255, 0.2);
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .sidebar-nav li.active::before {
+            transform: scaleY(1);
+        }
+
+        .sidebar-footer {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+        }
+
+        .social-links {
+            display: flex;
+            margin-top: 1rem;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .social-links a {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .social-links a:hover {
+            color: var(--primary);
+            background-color: rgba(0, 170, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Terminal Styles */
+        .terminal-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-darker);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .terminal-buttons {
+            display: flex;
+            margin-right: 0.75rem;
+        }
+
+        .terminal-button {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
+            font-size: 0.6rem;
+        }
+
+        .terminal-button:hover {
+            color: var(--bg-darker);
+        }
+
+        .terminal-button.red {
+            background-color: var(--danger);
+        }
+
+        .terminal-button.red:hover {
+            background-color: #ff3333;
+        }
+
+        .terminal-button.yellow {
+            background-color: var(--warning);
+        }
+
+        .terminal-button.yellow:hover {
+            background-color: #ffaa00;
+        }
+
+        .terminal-button.green {
+            background-color: var(--success);
+        }
+
+        .terminal-button.green:hover {
+            background-color: #1dbd3a;
+        }
+
+        .terminal-title {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .terminal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) var(--bg-darker);
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-body::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .terminal-line {
+            margin-bottom: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .terminal-input-line {
+            display: flex;
+            margin-bottom: 0.5rem;
+            align-items: center;
+            padding: 0 1rem 1rem;
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(transparent, var(--bg-darker) 20px);
+        }
+
+        .terminal-prompt {
+            margin-right: 0.75rem;
+            color: var(--primary);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .terminal-prompt .user {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .terminal-prompt .host {
+            color: var(--danger);
+        }
+
+        .terminal-prompt .dir {
+            color: var(--primary-dark);
+        }
+
+        .terminal-input {
+            flex: 1;
+            background-color: transparent;
+            border: none;
+            color: var(--primary);
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 1rem;
+            outline: none;
+            caret-color: var(--primary);
+            padding: 0.25rem 0;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background-color: var(--primary);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Content Styles */
+        .hidden {
+            display: none;
+        }
+
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+        }
+
+        .project {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 170, 255, 0.05) 0%, transparent 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .project:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-title {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
             position: relative;
             z-index: 1;
         }
 
-        header {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #0f0, transparent);
-        }
-
-        h1 {
-            font-size: clamp(1.2rem, 4vw, 2.5rem);
-            margin: 0;
-            overflow: hidden;
-            white-space: nowrap;
-            border-right: 0.15em solid #0f0;
-            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
-            font-family: 'Courier New', monospace;
-            font-weight: normal;
-        }
-
-        .name {
-            font-size: clamp(1rem, 3vw, 1.5rem);
-            margin: 10px 0;
-            color: #0f0;
-            text-shadow: 0 0 5px #0f0;
-            letter-spacing: 2px;
-            position: relative;
-            display: inline-block;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-        }
-
-        .name::before, .name::after {
-            content: '//';
-            color: #0a0;
-            margin: 0 10px;
-            font-family: 'Courier New', monospace;
-        }
-
-        @keyframes typing {
-            from { width: 0 }
-            to { width: 100% }
-        }
-
-        @keyframes blink-caret {
-            from, to { border-color: transparent }
-            50% { border-color: #0f0; }
-        }
-
-        h2 {
-            color: #0a0;
-            border-bottom: 1px dashed #0a0;
-            padding-bottom: 5px;
-            margin-top: 30px;
-            font-size: clamp(0.9rem, 3vw, 1.3rem);
-            position: relative;
-            padding-left: 15px;
-            font-family: 'Courier New', monospace;
-            font-weight: normal;
-        }
-
-        h2::before {
-            content: '>';
-            position: absolute;
-            left: 0;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-        }
-
-        p, a, span, div {
-            font-family: 'Courier New', monospace;
-        }
-
-        a {
-            color: #0f0;
-            text-decoration: none;
-            transition: all 0.3s;
-            position: relative;
-            font-family: 'Courier New', monospace;
-        }
-
-        a:hover {
-            color: #fff;
-            text-shadow: 0 0 8px #0f0;
-        }
-
-        a::after {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 1px;
-            bottom: 0;
-            left: 0;
-            background-color: #0f0;
-            transform: scaleX(0);
-            transform-origin: bottom right;
+        .project-title i {
+            margin-right: 10px;
+            color: var(--secondary);
             transition: transform 0.3s;
         }
 
-        a:hover::after {
-            transform: scaleX(1);
-            transform-origin: bottom left;
+        .project:hover .project-title i {
+            transform: rotate(10deg);
         }
 
-        .skills {
+        .project-description {
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            position: relative;
+            z-index: 1;
+        }
+
+        .project-tech {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .skill {
-            background-color: rgba(17, 17, 17, 0.7);
-            padding: 8px 15px;
-            border: 1px solid #0a0;
-            border-radius: 3px;
-            transition: all 0.3s;
-            font-size: clamp(0.7rem, 2vw, 0.9rem);
-            box-shadow: 0 0 5px rgba(0, 255, 0, 0.1);
-            font-family: 'Courier New', monospace;
-        }
-
-        .skill:hover {
-            background-color: rgba(34, 34, 34, 0.9);
-            transform: translateY(-3px);
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-        }
-
-        .project {
-            margin-bottom: 20px;
-            padding: 15px;
-            border-left: 3px solid #0f0;
-            background-color: rgba(17, 17, 17, 0.7);
-            transition: all 0.3s;
-            border-radius: 0 5px 5px 0;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .project:hover {
-            background-color: rgba(34, 34, 34, 0.9);
-            transform: translateX(5px);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-        }
-
-        .project h3 {
-            margin-top: 0;
-            color: #0f0;
-            font-size: clamp(0.9rem, 3vw, 1.2rem);
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-        }
-
-        .project p {
-            margin: 10px 0;
-            font-size: clamp(0.8rem, 2vw, 1rem);
-        }
-
-        .project a {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 5px 10px;
-            border: 1px solid #0f0;
-            border-radius: 3px;
-            transition: all 0.3s;
-            font-size: clamp(0.7rem, 2vw, 0.9rem);
-        }
-
-        .project a:hover {
-            background-color: rgba(0, 255, 0, 0.1);
-        }
-
-        .contact-item {
-            margin-bottom: 15px;
-            padding-left: 20px;
+            gap: 8px;
+            margin-top: 0.5rem;
             position: relative;
-            font-size: clamp(0.8rem, 2vw, 1rem);
+            z-index: 1;
         }
 
-        .contact-item::before {
-            content: '-';
-            position: absolute;
-            left: 5px;
-            color: #0f0;
+        .tech-tag {
+            background-color: rgba(0, 170, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--secondary);
+            transition: all 0.2s;
         }
 
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            font-size: clamp(0.7rem, 2vw, 0.9rem);
+        .tech-tag:hover {
+            background-color: rgba(0, 170, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .contact-method {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
             position: relative;
+            overflow: hidden;
         }
 
-        footer::before {
+        .contact-method::after {
             content: '';
             position: absolute;
             top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #0f0, transparent);
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, transparent 100%);
+            z-index: 0;
+            pointer-events: none;
         }
 
-        .glow {
-            animation: glow 2s ease-in-out infinite alternate;
-            letter-spacing: 1px;
-            font-size: clamp(0.7rem, 2vw, 1rem);
-            font-family: 'Courier New', monospace;
+        .contact-method:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+            transform: translateX(5px);
         }
 
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+        .contact-method i {
+            width: 30px;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-label {
+            color: var(--primary);
+            display: inline-block;
+            width: 80px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+
+        a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+
+        .command {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .warning {
+            color: var(--warning);
+        }
+
+        .info {
+            color: var(--secondary);
+        }
+
+        .purple {
+            color: var(--purple);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
             }
-            to {
-                text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+
+            .sidebar {
+                width: 100%;
+                padding: 1rem;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .sidebar-nav {
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .terminal-container {
+                min-height: 60vh;
             }
         }
 
-        .matrix {
+        /* Animations */
+        .typing {
+            border-right: 2px solid var(--primary);
+            animation: typingCursor 0.75s step-end infinite;
+        }
+
+        @keyframes typingCursor {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--primary); }
+        }
+
+        /* ASCII Art */
+        .ascii-art {
+            color: var(--secondary);
+            line-height: 1.3;
+            font-family: monospace;
+            white-space: pre;
+            margin: 1rem 0;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 20px;
+        }
+
+        .loading div {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+
+        .loading div:nth-child(1) {
+            left: 8px;
+            animation: loading1 0.6s infinite;
+        }
+
+        .loading div:nth-child(2) {
+            left: 8px;
+            animation: loading2 0.6s infinite;
+        }
+
+        .loading div:nth-child(3) {
+            left: 32px;
+            animation: loading2 0.6s infinite;
+        }
+
+        .loading div:nth-child(4) {
+            left: 56px;
+            animation: loading3 0.6s infinite;
+        }
+
+        @keyframes loading1 {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes loading3 {
+            0% { transform: scale(1); }
+            100% { transform: scale(0); }
+        }
+
+        @keyframes loading2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(24px, 0); }
+        }
+
+        /* Progress bars */
+        .skill-container {
+            margin-bottom: 1rem;
+        }
+
+        .skill-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            color: var(--text-light);
+        }
+
+        .skill-bar {
+            height: 8px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+
+        /* Terminal effects */
+        .glitch {
+            position: relative;
+        }
+
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-darker);
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--purple);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--success);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(31px, 9999px, 94px, 0); }
+            10% { clip: rect(112px, 9999px, 76px, 0); }
+            20% { clip: rect(85px, 9999px, 77px, 0); }
+            30% { clip: rect(27px, 9999px, 97px, 0); }
+            40% { clip: rect(64px, 9999px, 98px, 0); }
+            50% { clip: rect(61px, 9999px, 85px, 0); }
+            60% { clip: rect(99px, 9999px, 114px, 0); }
+            70% { clip: rect(34px, 9999px, 115px, 0); }
+            80% { clip: rect(98px, 9999px, 129px, 0); }
+            90% { clip: rect(43px, 9999px, 96px, 0); }
+            100% { clip: rect(82px, 9999px, 64px, 0); }
+        }
+
+        @keyframes glitch-anim2 {
+            0% { clip: rect(65px, 9999px, 119px, 0); }
+            10% { clip: rect(79px, 9999px, 66px, 0); }
+            20% { clip: rect(101px, 9999px, 114px, 0); }
+            30% { clip: rect(105px, 9999px, 50px, 0); }
+            40% { clip: rect(15px, 9999px, 75px, 0); }
+            50% { clip: rect(6px, 9999px, 60px, 0); }
+            60% { clip: rect(50px, 9999px, 103px, 0); }
+            70% { clip: rect(133px, 9999px, 55px, 0); }
+            80% { clip: rect(138px, 9999px, 90px, 0); }
+            90% { clip: rect(62px, 9999px, 102px, 0); }
+            100% { clip: rect(30px, 9999px, 92px, 0); }
+        }
+
+        /* Matrix rain effect */
+        .matrix-rain {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            pointer-events: none;
             z-index: -1;
-            opacity: 0.15;
-        }
-
-        #cursor {
-            animation: blink 1s step-end infinite;
-            font-family: 'Courier New', monospace;
-        }
-
-        @keyframes blink {
-            from, to { opacity: 1 }
-            50% { opacity: 0 }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-
-            header {
-                padding: 15px 0;
-                margin-bottom: 20px;
-            }
-
-            .skills {
-                justify-content: center;
-            }
-
-            .project {
-                padding: 10px;
-            }
-
-            .contact-item {
-                padding-left: 15px;
-            }
-
-            footer {
-                margin-top: 30px;
-                padding: 15px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            body {
-                font-size: 14px;
-            }
-
-            .skill {
-                padding: 5px 10px;
-            }
-
-            .project {
-                padding: 8px;
-            }
+            opacity: 0.05;
         }
     </style>
 </head>
 <body>
     <!-- Matrix rain effect -->
-    <canvas id="matrix" class="matrix"></canvas>
+    <canvas id="matrix-rain" class="matrix-rain"></canvas>
 
-    <div class="container">
-        <header>
-            <center><h1><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ whoami</h1></center>
-            <div class="name">Odhiambo Churchill</div>
-            <p class="glow">[ Security Researcher | Full-Stack Developer | Ethical Hacker ]</p>
-        </header>
-
-        <section id="about">
-            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ cat about.txt</h2>
-            <p>Hello, world! I'm a cybersecurity enthusiast and software developer with a passion for breaking and building systems.</p>
-            <p>With over 5 years of experience in penetration testing and secure software development, I specialize in identifying vulnerabilities and creating robust solutions.</p>
-        </section>
-
-        <section id="skills">
-            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ ls skills/</h2>
-            <div class="skills">
-                <span class="skill">Penetration Testing</span>
-                <span class="skill">Python</span>
-                <span class="skill">JavaScript</span>
-                <span class="skill">Node.js</span>
-                <span class="skill">C/C++</span>
-                <span class="skill">Reverse Engineering</span>
-                <span class="skill">Web Exploitation</span>
-                <span class="skill">Cryptography</span>
-                <span class="skill">Linux</span>
-                <span class="skill">Bash Scripting</span>
-                <span class="skill">Network Security</span>
-                <span class="skill">SQL/NoSQL</span>
-                <span class="skill">Postgresql</span>
-                <span class="skill">Django</span>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <!-- Add your profile picture here -->
+            <img src="./pfp.jpg" alt="Odhiambo Churchill" class="profile-pic" id="profile-pic">
+            <div class="name"><i class="fas fa-terminal"></i>odhiambo@portfolio</div>
+            <div class="title">Full Stack Developer</div>
+            <div class="tagline">Building digital solutions with Python, Django, and React</div>
+        </div>
+        
+        <div class="sidebar-nav">
+            <ul>
+                <li onclick="executeCommand('cd about')" id="nav-about"><i class="fas fa-user"></i>About</li>
+                <li onclick="executeCommand('cd projects')" id="nav-projects"><i class="fas fa-code"></i>Projects</li>
+                <li onclick="executeCommand('cd skills')" id="nav-skills"><i class="fas fa-cogs"></i>Skills</li>
+                <li onclick="executeCommand('cd contact')" id="nav-contact"><i class="fas fa-envelope"></i>Contact</li>
+                <li onclick="executeCommand('clear')"><i class="fas fa-broom"></i>Clear Terminal</li>
+                <li onclick="executeCommand('theme')"><i class="fas fa-palette"></i>Change Theme</li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div>Last login: <span id="last-login"></span></div>
+            <div>Type <span class="command">help</span> for available commands</div>
+            <div class="social-links">
+                <a href="https://github.com/churchillodhiambo" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="https://linkedin.com/in/odhiambo-churchill" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="https://twitter.com/churchill_odhi" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="mailto:odhiambochurchill14@gmail.com" title="Email"><i class="fas fa-envelope"></i></a>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <section id="projects">
-            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ cd projects/</h2>
-
-            <div class="project">
-                <h3>SecureAuth Framework</h3>
-                <p>A multi-factor authentication system with biometric verification and hardware token support.</p>
-                <p><strong>Tech:</strong> Python, Flask, JWT, RSA</p>
-                <a href="#">[View Source]</a>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <div class="terminal-button red" onclick="executeCommand('clear')" title="Close">×</div>
+                <div class="terminal-button yellow" onclick="minimizeTerminal()" title="Minimize">-</div>
+                <div class="terminal-button green" onclick="maximizeTerminal()" title="Maximize">+</div>
             </div>
-
-            <div class="project">
-                <h3>NetVigil</h3>
-                <p>Network monitoring tool with real-time intrusion detection and automated threat response.</p>
-                <p><strong>Tech:</strong> C++, libpcap, Machine Learning</p>
-                <a href="#">[View Demo]</a>
+            <div class="terminal-title">odhiambo@portfolio: ~</div>
+            <div style="width: 60px;"></div>
+        </div>
+        
+        <div class="terminal-body" id="terminal-output">
+            <div class="terminal-line">
+                <div class="ascii-art">
+  _____          _      _____          _        _ _ 
+ |  __ \        | |    |  __ \        | |      | | |
+ | |  | |  ___  | |_   | |__) |__ _ __| |_ __ _| | |
+ | |  | | / _ \ | __|  |  ___// _` / _` | '__| | | |
+ | |__| || (_) || |_   | |   | (_| | (_| | |  | | | |
+ |_____/  \___/  \__|  |_|    \__,_|\__,_|_|  |_|_|
+                </div>
             </div>
-
-            <div class="project">
-                <h3>CryptoVault</h3>
-                <p>Command-line password manager with military-grade encryption and secure cloud sync.</p>
-                <p><strong>Tech:</strong> Rust, AES-256, SQLite</p>
-                <a href="#">[Download]</a>
+            <div class="terminal-line">
+                Welcome to Odhiambo Churchill's interactive developer portfolio!
             </div>
-        </section>
+            <div class="terminal-line">
+                Type <span class="command">help</span> to see available commands.
+            </div>
+            <div class="terminal-line">
+                ----------------------------------------
+            </div>
+        </div>
+        
+        <div class="terminal-input-line">
+            <span class="terminal-prompt" id="prompt">
+                <span class="user">odhiambo</span>@<span class="host">portfolio</span>:<span class="dir">~</span>$
+            </span>
+            <input type="text" class="terminal-input" id="terminal-input" autofocus spellcheck="false" autocorrect="off" autocapitalize="off">
+            <span class="cursor" id="cursor"></span>
+        </div>
+    </div>
 
-        <section id="contact">
-            <h2><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ ./contact.sh</h2>
-            <div class="contact-item">Email: <a href="mailto:contact@cyberdev.io">contact@cyberdev.io</a></div>
-            <div class="contact-item">Github: <a href="https://github.com/Churchillk" target="_blank">github.com/Churchillk</a></div>
-            <div class="contact-item">LinkedIn: <a href="https://linkedin.com/in/cyberdev" target="_blank">linkedin.com/in/cyberdev</a></div>
-            <div class="contact-item">PGP Key: <a href="#">0xABCDEF1234567890</a></div>
-        </section>
+    <!-- Hidden content sections -->
+    <div id="about-content" class="hidden">
+        <div class="section-title"><i class="fas fa-user"></i> About Me</div>
+        <div class="terminal-line">
+            Hello! I'm Odhiambo Churchill, a passionate full-stack developer specializing in Python, Django, and React.
+        </div>
+        <div class="terminal-line">
+            I recently completed a 3-month attachment at Kenya Power, where I gained valuable industry experience.
+        </div>
+        <div class="terminal-line">
+            My technical expertise includes:
+        </div>
+        <div class="terminal-line">
+            • Frontend: JavaScript, React, React Native<br>
+            • Backend: Python, Django, REST APIs<br>
+            • Databases: PostgreSQL, MySQL<br>
+            • DevOps: Linux server administration
+        </div>
+        <div class="terminal-line">
+            I'm passionate about creating efficient, scalable solutions and continuously expanding my skill set.
+            I follow best practices like clean code principles, version control, and test-driven development.
+        </div>
+        <div class="terminal-line">
+            When I'm not coding, you can find me exploring new technologies, contributing to open-source projects,
+            or mentoring aspiring developers.
+        </div>
+        <div class="terminal-line">
+            <span class="command">Fun fact:</span> I built this interactive terminal portfolio to showcase my skills in a unique way!
+        </div>
+    </div>
 
-        <footer>
-            <p><span style="color: rgba(255, 0, 0, 0.671);">root</span>@cyberdev:~$ <span id="cursor">_</span></p>
-            <p>&copy; 2025 CyberDev. All systems operational.</p>
-        </footer>
+    <div id="skills-content" class="hidden">
+        <div class="section-title"><i class="fas fa-cogs"></i> Technical Skills</div>
+        
+        <div class="skill-container">
+            <div class="skill-name">
+                <span>Python</span>
+                <span>90%</span>
+            </div>
+            <div class="skill-bar">
+                <div class="skill-progress" style="width: 90%"></div>
+            </div>
+        </div>
+        
+        <div class="skill-container">
+            <div class="skill-name">
+                <span>Django</span>
+                <span>85%</span>
+            </div>
+            <div class="skill-bar">
+                <div class="skill-progress" style="width: 85%"></div>
+            </div>
+        </div>
+        
+        <div class="skill-container">
+            <div class="skill-name">
+                <span>JavaScript</span>
+                <span>80%</span>
+            </div>
+            <div class="skill-bar">
+                <div class="skill-progress" style="width: 80%"></div>
+            </div>
+        </div>
+        
+        <div class="skill-container">
+            <div class="skill-name">
+                <span>React</span>
+                <span>75%</span>
+            </div>
+            <div class="skill-bar">
+                <div class="skill-progress" style="width: 75%"></div>
+            </div>
+        </div>
+        
+        <div class="skill-container">
+            <div class="skill-name">
+                <span>PostgreSQL</span>
+                <span>80%</span>
+            </div>
+            <div class="skill-bar">
+                <div class="skill-progress" style="width: 80%"></div>
+            </div>
+        </div>
+        
+        <div class="skill-container">
+            <div class="skill-name">
+                <span>Linux</span>
+                <span>70%</span>
+            </div>
+            <div class="skill-bar">
+                <div class="skill-progress" style="width: 70%"></div>
+            </div>
+        </div>
+        
+        <div class="terminal-line" style="margin-top: 1.5rem;">
+            <span class="command">Currently learning:</span> Docker, AWS, GraphQL
+        </div>
+    </div>
+
+    <div id="projects-content" class="hidden">
+        <div class="section-title"><i class="fas fa-code"></i> Featured Projects</div>
+        
+        <div class="project">
+            <div class="project-title"><i class="fas fa-terminal"></i> Interactive Terminal Portfolio (2023)</div>
+            <div class="project-description">
+                This innovative portfolio website designed to look and function like a Linux terminal, complete with 
+                interactive commands and real-time output. Built with pure HTML/CSS/JS with no frameworks to 
+                demonstrate core web fundamentals.
+            </div>
+            <div class="project-tech">
+                <span class="tech-tag">HTML5</span>
+                <span class="tech-tag">CSS3</span>
+                <span class="tech-tag">JavaScript</span>
+                <span class="tech-tag">Responsive Design</span>
+            </div>
+        </div>
+        
+        <div class="project">
+            <div class="project-title"><i class="fas fa-mobile"></i> React Native Task Manager (2023)</div>
+            <div class="project-description">
+                A cross-platform mobile application for task management with offline capabilities and cloud synchronization.
+                Features include task categorization, reminders, and progress tracking.
+            </div>
+            <div class="project-tech">
+                <span class="tech-tag">React Native</span>
+                <span class="tech-tag">Firebase</span>
+                <span class="tech-tag">Redux</span>
+                <span class="tech-tag">Expo</span>
+            </div>
+        </div>
+        
+        <div class="project">
+            <div class="project-title"><i class="fas fa-store"></i> E-commerce Backend (2022)</div>
+            <div class="project-description">
+                A robust e-commerce backend system built with Django and Django REST Framework. Includes features like
+                product management, user authentication, order processing, and payment integration.
+            </div>
+            <div class="project-tech">
+                <span class="tech-tag">Django</span>
+                <span class="tech-tag">Django REST</span>
+                <span class="tech-tag">PostgreSQL</span>
+                <span class="tech-tag">JWT</span>
+            </div>
+        </div>
+        
+        <div class="project">
+            <div class="project-title"><i class="fas fa-plug"></i> Kenya Power Attachment Project (2022)</div>
+            <div class="project-description">
+                During my 3-month attachment at Kenya Power, I worked on internal tools for data management and reporting.
+                Gained hands-on experience with enterprise systems and Linux server administration.
+            </div>
+            <div class="project-tech">
+                <span class="tech-tag">Python</span>
+                <span class="tech-tag">Django</span>
+                <span class="tech-tag">Linux</span>
+                <span class="tech-tag">Bash Scripting</span>
+            </div>
+        </div>
+        
+        <div class="terminal-line" style="margin-top: 1.5rem;">
+            <span class="command">Note:</span> More projects available on my <a href="https://github.com/churchillodhiambo" target="_blank">GitHub</a> profile.
+        </div>
+    </div>
+
+    <div id="contact-content" class="hidden">
+        <div class="section-title"><i class="fas fa-envelope"></i> Contact Me</div>
+        
+        <div class="contact-method">
+            <i class="fas fa-envelope"></i>
+            <span class="contact-label">Email:</span> 
+            <a href="mailto:odhiambochurchill14@gmail.com" onclick="executeCommand('mailto odhiambochurchill14@gmail.com'); return false;">odhiambochurchill14@gmail.com</a>
+        </div>
+        
+        <div class="contact-method">
+            <i class="fab fa-github"></i>
+            <span class="contact-label">GitHub:</span> 
+            <a href="https://github.com/churchillodhiambo" target="_blank" onclick="executeCommand('open https://github.com/churchillodhiambo'); return false;">github.com/churchillodhiambo</a>
+        </div>
+        
+        <div class="contact-method">
+            <i class="fab fa-linkedin"></i>
+            <span class="contact-label">LinkedIn:</span> 
+            <a href="https://linkedin.com/in/odhiambo-churchill" target="_blank" onclick="executeCommand('open https://linkedin.com/in/odhiambo-churchill'); return false;">linkedin.com/in/odhiambo-churchill</a>
+        </div>
+        
+        <div class="contact-method">
+            <i class="fab fa-twitter"></i>
+            <span class="contact-label">Twitter:</span> 
+            <a href="https://twitter.com/churchill_odhi" target="_blank" onclick="executeCommand('open https://twitter.com/churchill_odhi'); return false;">@churchill_odhi</a>
+        </div>
+        
+        <div class="terminal-line" style="margin-top: 2rem;">
+            Feel free to reach out for collaboration opportunities, job offers, or just to chat about tech!
+        </div>
+        
+        <div class="terminal-line">
+            You can also use the <span class="command">mailto</span> or <span class="command">open</span> commands in the terminal.
+        </div>
     </div>
 
     <script>
+        // DOM elements
+        let terminalInput = document.getElementById('terminal-input');
+        const terminalOutput = document.getElementById('terminal-output');
+        const prompt = document.getElementById('prompt');
+        let cursor = document.getElementById('cursor');
+        const lastLogin = document.getElementById('last-login');
+        const profilePic = document.getElementById('profile-pic');
+        
+        // State
+        let currentDirectory = '~';
+        let commandHistory = [];
+        let historyIndex = -1;
+        let isProcessing = false;
+        let currentTheme = 'default';
+        let matrixRainActive = false;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set last login time
+            const now = new Date();
+            lastLogin.textContent = now.toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                year: 'numeric'
+            });
+            
+            // Focus input on any click in the terminal
+            document.addEventListener('click', () => {
+                terminalInput.focus();
+            });
+            
+            // Handle input
+            terminalInput.addEventListener('keydown', handleKeyDown);
+            
+            // Initial welcome message
+            setTimeout(() => {
+                typeWriter("Welcome to my interactive portfolio!\n\n" +
+                          "This terminal responds to various commands - try 'help' to get started.\n" +
+                          "You can also click the menu items on the left to navigate.", 20);
+            }, 500);
+            
+            // Initialize matrix rain
+            initMatrixRain();
+            
+            // Add profile picture hover effect
+            profilePic.addEventListener('mouseenter', () => {
+                profilePic.style.transform = 'scale(1.05) rotate(5deg)';
+                profilePic.style.boxShadow = '0 0 25px rgba(0, 170, 255, 0.5)';
+            });
+            
+            profilePic.addEventListener('mouseleave', () => {
+                profilePic.style.transform = 'scale(1)';
+                profilePic.style.boxShadow = '0 0 15px rgba(0, 170, 255, 0.3)';
+            });
+        });
+        
         // Matrix rain effect
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
-        const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const nums = '0123456789';
-        const symbols = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
-
-        const alphabet = katakana + latin + nums + symbols;
-
-        const fontSize = 16;
-        const columns = canvas.width / fontSize;
-
-        const rainDrops = [];
-
-        for (let x = 0; x < columns; x++) {
-            rainDrops[x] = Math.random() * -50;
-        }
-
-        const draw = () => {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#0f0';
-            ctx.font = fontSize + 'px monospace';
-
-            for (let i = 0; i < rainDrops.length; i++) {
-                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-                const y = rainDrops[i] * fontSize;
-
-                // Only draw if the drop is visible
-                if (y > 0 && y < canvas.height) {
-                    // Fade out at the bottom
-                    const opacity = 1 - (y / canvas.height);
-                    ctx.fillStyle = `rgba(0, 255, 0, ${opacity})`;
-                    ctx.fillText(text, i * fontSize, y);
-                }
-
-                // Reset drop when it reaches the bottom with some randomness
-                if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    rainDrops[i] = 0;
-                }
-                rainDrops[i]++;
-            }
-        };
-
-        setInterval(draw, 30);
-
-        // Handle window resize
-        window.addEventListener('resize', () => {
+        function initMatrixRain() {
+            const canvas = document.getElementById('matrix-rain');
+            const ctx = canvas.getContext('2d');
+            
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-        });
-
-        // Add a subtle hover effect to sections
-        document.querySelectorAll('section').forEach(section => {
-            section.addEventListener('mouseenter', () => {
-                section.style.transform = 'translateX(5px)';
+            
+            const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+            const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const nums = '0123456789';
+            const symbols = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+            
+            const alphabet = katakana + latin + nums + symbols;
+            
+            const fontSize = 16;
+            const columns = canvas.width / fontSize;
+            
+            const rainDrops = [];
+            
+            for (let x = 0; x < columns; x++) {
+                rainDrops[x] = 1;
+            }
+            
+            function draw() {
+                if (!matrixRainActive) return;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#0F0';
+                ctx.font = fontSize + 'px monospace';
+                
+                for (let i = 0; i < rainDrops.length; i++) {
+                    const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                    ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                    
+                    if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        rainDrops[i] = 0;
+                    }
+                    rainDrops[i]++;
+                }
+                
+                requestAnimationFrame(draw);
+            }
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Start with matrix rain off
+            // To activate: executeCommand('matrix')
+        }
+        
+        // Typewriter effect for initial message
+        function typeWriter(text, speed) {
+            let i = 0;
+            const lines = text.split('\n');
+            let currentLine = 0;
+            let lineElement = addLine('');
+            
+            function type() {
+                if (currentLine < lines.length) {
+                    if (i < lines[currentLine].length) {
+                        lineElement.innerHTML += lines[currentLine].charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    } else {
+                        currentLine++;
+                        if (currentLine < lines.length) {
+                            i = 0;
+                            lineElement = addLine('');
+                            setTimeout(type, speed);
+                        }
+                    }
+                }
+            }
+            
+            type();
+        }
+        
+        // Key handler
+        function handleKeyDown(e) {
+            if (isProcessing) {
+                e.preventDefault();
+                return;
+            }
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const command = terminalInput.value.trim();
+                if (command) {
+                    // Add to history
+                    commandHistory.push(command);
+                    historyIndex = commandHistory.length;
+                    
+                    // Process command
+                    processCommand(command);
+                    
+                    // Clear input
+                    terminalInput.value = '';
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length > 0 && historyIndex > 0) {
+                    historyIndex--;
+                    terminalInput.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    terminalInput.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = commandHistory.length;
+                    terminalInput.value = '';
+                }
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                autoCompleteCommand();
+            }
+        }
+        
+        // Auto-complete for commands
+        function autoCompleteCommand() {
+            const commands = ['help', 'cd', 'ls', 'cat', 'clear', 'about', 'projects', 'contact', 'skills', 
+                             'neofetch', 'echo', 'date', 'whoami', 'banner', 'sudo', 'exit', 'mailto', 'open',
+                             'theme', 'matrix', 'resume'];
+            const input = terminalInput.value.trim();
+            
+            if (!input) return;
+            
+            const matches = commands.filter(cmd => cmd.startsWith(input));
+            
+            if (matches.length === 1) {
+                terminalInput.value = matches[0] + ' ';
+            } else if (matches.length > 1) {
+                addLine(`Possible completions: ${matches.join('  ')}`);
+                printPrompt();
+                terminalInput.value = input;
+            }
+        }
+        
+        // Process commands
+        function processCommand(command) {
+            isProcessing = true;
+            
+            // Echo the command
+            addLine(`<span class="terminal-prompt"><span class="user">odhiambo</span>@<span class="host">portfolio</span>:<span class="dir">${currentDirectory}</span>$</span> ${command}`);
+            
+            // Split into parts
+            const parts = command.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const arg = parts[1];
+            
+            // Process command
+            switch (cmd) {
+                case 'help':
+                    showHelp();
+                    break;
+                case 'cd':
+                    changeDirectory(arg);
+                    break;
+                case 'ls':
+                    listDirectory();
+                    break;
+                case 'cat':
+                    showFile(arg);
+                    break;
+                case 'clear':
+                    clearTerminal();
+                    break;
+                case 'about':
+                    showAbout();
+                    break;
+                case 'projects':
+                    showProjects();
+                    break;
+                case 'contact':
+                    showContact();
+                    break;
+                case 'skills':
+                    showSkills();
+                    break;
+                case 'sudo':
+                    addLine('<span class="error">Error:</span> Nice try! You\'re not root here.');
+                    break;
+                case 'exit':
+                    addLine('There\'s nowhere to exit to. This is a website!');
+                    break;
+                case 'neofetch':
+                    showNeofetch();
+                    break;
+                case 'echo':
+                    addLine(command.substring(5));
+                    break;
+                case 'date':
+                    addLine(new Date().toString());
+                    break;
+                case 'whoami':
+                    addLine('You are a visitor to my awesome portfolio!');
+                    break;
+                case 'banner':
+                    showBanner();
+                    break;
+                case 'mailto':
+                    if (arg) {
+                        addLine(`Opening email client for ${arg}...`);
+                        setTimeout(() => {
+                            window.open(`mailto:${arg}`, '_blank');
+                        }, 500);
+                    } else {
+                        addLine('Usage: mailto [email-address]');
+                    }
+                    break;
+                case 'open':
+                    if (arg) {
+                        addLine(`Opening ${arg} in new tab...`);
+                        setTimeout(() => {
+                            window.open(arg.startsWith('http') ? arg : `https://${arg}`, '_blank');
+                        }, 500);
+                    } else {
+                        addLine('Usage: open [url]');
+                    }
+                    break;
+                case 'theme':
+                    changeTheme(arg);
+                    break;
+                case 'matrix':
+                    toggleMatrixRain();
+                    break;
+                case 'resume':
+                    showResume();
+                    break;
+                default:
+                    addLine(`<span class="error">Command not found:</span> ${cmd}. Type 'help' for available commands.`);
+            }
+            
+            // Update active nav item
+            updateActiveNav();
+            
+            // Scroll to bottom
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            
+            isProcessing = false;
+        }
+        
+        // Update active navigation item
+        function updateActiveNav() {
+            document.querySelectorAll('.sidebar-nav li').forEach(li => {
+                li.classList.remove('active');
             });
+            
+            const activeNavMap = {
+                '~': 'nav-about',
+                'about': 'nav-about',
+                'projects': 'nav-projects',
+                'skills': 'nav-skills',
+                'contact': 'nav-contact'
+            };
+            
+            const activeNavId = activeNavMap[currentDirectory === '/' ? '~' : currentDirectory];
+            if (activeNavId) {
+                document.getElementById(activeNavId).classList.add('active');
+            }
+        }
+        
+        // Command functions
+        function showHelp() {
+            const helpText = `
+Available commands:
+<span class="command">help</span>: Show this help message
+<span class="command">cd [directory]</span>: Change section (about, projects, skills, contact)
+<span class="command">ls</span>: List available files/sections
+<span class="command">cat [file]</span>: Show file contents (about.txt, projects.txt, skills.txt, contact.txt)
+<span class="command">clear</span>: Clear the terminal
+<span class="command">about</span>: Show about section
+<span class="command">projects</span>: Show projects section
+<span class="command">skills</span>: Show skills section
+<span class="command">contact</span>: Show contact section
+<span class="command">neofetch</span>: Display system information
+<span class="command">echo [text]</span>: Repeat text back
+<span class="command">date</span>: Show current date/time
+<span class="command">whoami</span>: Identify yourself
+<span class="command">banner</span>: Display a fun banner
+<span class="command">mailto [email]</span>: Open email client
+<span class="command">open [url]</span>: Open URL in new tab
+<span class="command">theme [name]</span>: Change color theme
+<span class="command">matrix</span>: Toggle matrix rain effect
+<span class="command">resume</span>: View/download my resume
 
-            section.addEventListener('mouseleave', () => {
-                section.style.transform = 'translateX(0)';
-            });
-        });
+Try some Linux commands for fun responses!
+            `;
+            addLine(helpText);
+        }
+        
+        function changeDirectory(dir) {
+            if (!dir) {
+                currentDirectory = '~';
+                addLine('<span class="success">Returned to home directory.</span>');
+                return;
+            }
+            
+            switch (dir.toLowerCase()) {
+                case 'about':
+                case 'projects':
+                case 'skills':
+                case 'contact':
+                    currentDirectory = dir;
+                    addLine(`<span class="success">Changed directory to ${dir}</span>`);
+                    break;
+                case '..':
+                    currentDirectory = '~';
+                    addLine('<span class="success">Returned to home directory.</span>');
+                    break;
+                case '/':
+                    currentDirectory = '/';
+                    addLine('<span class="warning">Changed to root directory (but there\'s nothing here).</span>');
+                    break;
+                case '~':
+                    currentDirectory = '~';
+                    addLine('<span class="success">Returned to home directory.</span>');
+                    break;
+                default:
+                    addLine(`<span class="error">cd: no such directory: ${dir}</span>`);
+            }
+            
+            updatePrompt();
+        }
+        
+        function listDirectory() {
+            let files = [];
+            
+            if (currentDirectory === '~') {
+                files = ['about.txt', 'projects.txt', 'skills.txt', 'contact.txt', 'resume.pdf'];
+            } else if (currentDirectory === 'about') {
+                files = ['bio.txt', 'skills.txt'];
+            } else if (currentDirectory === 'projects') {
+                files = ['terminal-portfolio', 'react-native-task', 'ecommerce-backend', 'kenya-power'];
+            } else if (currentDirectory === 'skills') {
+                files = ['languages.txt', 'frontend.txt', 'backend.txt', 'databases.txt', 'devops.txt'];
+            } else if (currentDirectory === 'contact') {
+                files = ['email.txt', 'github.txt', 'linkedin.txt', 'twitter.txt'];
+            } else {
+                files = ['lost+found'];
+            }
+            
+            addLine(files.join('  '));
+        }
+        
+        function showFile(file) {
+            if (!file) {
+                addLine('<span class="error">Usage:</span> cat [filename]');
+                return;
+            }
+            
+            if (file === 'about.txt' || file === 'bio.txt') {
+                showAbout();
+            } else if (file === 'projects.txt') {
+                showProjects();
+            } else if (file === 'skills.txt') {
+                showSkills();
+            } else if (file === 'contact.txt') {
+                showContact();
+            } else if (file === 'languages.txt') {
+                addLine('Languages: Python, JavaScript, HTML/CSS');
+            } else if (file === 'frontend.txt') {
+                addLine('Frontend: React, React Native, Redux, TailwindCSS');
+            } else if (file === 'backend.txt') {
+                addLine('Backend: Django, Django REST Framework, Flask');
+            } else if (file === 'databases.txt') {
+                addLine('Databases: PostgreSQL, MySQL, SQLite');
+            } else if (file === 'devops.txt') {
+                addLine('DevOps & Tools: Linux, Git, Docker, AWS Basics');
+            } else if (file === 'email.txt') {
+                addLine('Email: odhiambochurchill14@gmail.com');
+            } else if (file === 'github.txt') {
+                addLine('GitHub: github.com/churchillodhiambo');
+            } else if (file === 'linkedin.txt') {
+                addLine('LinkedIn: linkedin.com/in/odhiambo-churchill');
+            } else if (file === 'twitter.txt') {
+                addLine('Twitter: @churchill_odhi');
+            } else if (file === 'resume.pdf') {
+                showResume();
+            } else {
+                addLine(`<span class="error">cat: ${file}: No such file or directory</span>`);
+            }
+        }
+        
+        function clearTerminal() {
+            terminalOutput.innerHTML = '';
+        }
+        
+        function showAbout() {
+            const content = document.getElementById('about-content').innerHTML;
+            addLine(content);
+            currentDirectory = 'about';
+            updatePrompt();
+        }
+        
+        function showProjects() {
+            const content = document.getElementById('projects-content').innerHTML;
+            addLine(content);
+            currentDirectory = 'projects';
+            updatePrompt();
+        }
+        
+        function showSkills() {
+            const content = document.getElementById('skills-content').innerHTML;
+            addLine(content);
+            currentDirectory = 'skills';
+            updatePrompt();
+        }
+        
+        function showContact() {
+            const content = document.getElementById('contact-content').innerHTML;
+            addLine(content);
+            currentDirectory = 'contact';
+            updatePrompt();
+        }
+        
+        function showNeofetch() {
+            const neofetch = `
+<span class="ascii-art">
+   _____          _    _____          _        _ _ 
+  / ____|        | |  |  __ \\        | |      | | |
+ | |     ___   __| |  | |__) |__ _ __| |_ __ _| | |
+ | |    / _ \\ / _\` |  |  ___// _\` / _\` | '__| | | |
+ | |___| (_) | (_| |  | |   | (_| | (_| | |  | | | |
+  \\_____\\___/ \\__,_|  |_|    \\__,_|\\__,_|_|  |_|_|
+</span>
+
+<span class="info">odhiambo@portfolio</span>
+----------------
+<span class="command">OS:</span> Web Portfolio 2.0
+<span class="command">Shell:</span> Interactive JavaScript Terminal
+<span class="command">Terminal:</span> ${navigator.userAgent.split(' ')[0]}
+<span class="command">CPU:</span> Python + JavaScript Engine
+<span class="command">Memory:</span> Unlimited potential
+<span class="command">Theme:</span> ${currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)}
+            `;
+            addLine(neofetch);
+        }
+        
+        function showBanner() {
+            const banner = `
+<span class="ascii-art">
+  ____            _      _   _              
+ |  _ \\ ___  _ __| |_ __| | | | ___  _ __  
+ | |_) / _ \\| '__| __/ _\` | | |/ _ \\| '_ \\ 
+ |  __/ (_) | |  | || (_| | | | (_) | | | |
+ |_|   \\___/|_|   \\__\\__,_| |_|\\___/|_| |_|
+</span>
+<span class="info">Odhiambo Churchill - Developer Portfolio</span>
+Type <span class="command">help</span> to get started
+            `;
+            addLine(banner);
+        }
+        
+        function changeTheme(theme) {
+            const themes = {
+                'default': {
+                    primary: '#00ff00',
+                    primaryDark: '#00cc00',
+                    secondary: '#00aaff',
+                    purple: '#aa00ff'
+                },
+                'dark': {
+                    primary: '#bb86fc',
+                    primaryDark: '#3700b3',
+                    secondary: '#03dac6',
+                    purple: '#bb86fc'
+                },
+                'light': {
+                    primary: '#6200ee',
+                    primaryDark: '#3700b3',
+                    secondary: '#03dac6',
+                    purple: '#bb86fc'
+                },
+                'cyberpunk': {
+                    primary: '#ff2a6d',
+                    primaryDark: '#d1005b',
+                    secondary: '#05d9e8',
+                    purple: '#d300c5'
+                },
+                'retro': {
+                    primary: '#39ff14',
+                    primaryDark: '#00b300',
+                    secondary: '#ff44cc',
+                    purple: '#ff44cc'
+                }
+            };
+            
+            if (!theme) {
+                const availableThemes = Object.keys(themes).join(', ');
+                addLine(`Available themes: ${availableThemes}`);
+                return;
+            }
+            
+            if (themes[theme]) {
+                currentTheme = theme;
+                const colors = themes[theme];
+                
+                document.documentElement.style.setProperty('--primary', colors.primary);
+                document.documentElement.style.setProperty('--primary-dark', colors.primaryDark);
+                document.documentElement.style.setProperty('--secondary', colors.secondary);
+                document.documentElement.style.setProperty('--purple', colors.purple);
+                
+                addLine(`<span class="success">Theme changed to ${theme}</span>`);
+            } else {
+                addLine(`<span class="error">Theme not found: ${theme}</span>`);
+            }
+        }
+        
+        function toggleMatrixRain() {
+            const canvas = document.getElementById('matrix-rain');
+            matrixRainActive = !matrixRainActive;
+            
+            if (matrixRainActive) {
+                addLine('<span class="success">Activating matrix rain effect...</span>');
+                initMatrixRain();
+                canvas.style.opacity = '0.05';
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                requestAnimationFrame(() => {
+                    const draw = () => {
+                        if (!matrixRainActive) return;
+                        
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.fillStyle = colors.primary || '#0F0';
+                        ctx.font = '16px monospace';
+                        
+                        const alphabet = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+                        const fontSize = 16;
+                        const columns = canvas.width / fontSize;
+                        
+                        for (let i = 0; i < columns; i++) {
+                            const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                            ctx.fillText(text, i * fontSize, Math.random() * canvas.height);
+                        }
+                        
+                        requestAnimationFrame(draw);
+                    };
+                    
+                    draw();
+                });
+            } else {
+                addLine('<span class="success">Deactivating matrix rain effect...</span>');
+                canvas.style.opacity = '0';
+            }
+        }
+        
+        function showResume() {
+            addLine('<span class="info">My resume is available for download:</span>');
+            addLine('<span class="command">•</span> <a href="resume.pdf" target="_blank">Download PDF</a>');
+            addLine('<span class="command">•</span> <a href="resume.docx" target="_blank">Download Word</a>');
+            addLine('<span class="command">•</span> <a href="resume.txt" target="_blank">View Plain Text</a>');
+            addLine('For the actual resume links, please contact me directly.');
+        }
+        
+        // Update terminal prompt
+        function updatePrompt() {
+            const dirElement = prompt.querySelector('.dir');
+            dirElement.textContent = currentDirectory;
+        }
+        
+        // Helper functions
+        function addLine(text) {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.innerHTML = text;
+            terminalOutput.appendChild(line);
+            return line;
+        }
+        
+        function minimizeTerminal() {
+            addLine('<span class="warning">Minimize functionality would go here in a real app.</span>');
+        }
+        
+        function maximizeTerminal() {
+            addLine('<span class="warning">Maximize functionality would go here in a real app.</span>');
+        }
+        
+        // Expose executeCommand for sidebar navigation
+        window.executeCommand = function(command) {
+            terminalInput.value = command;
+            const event = new KeyboardEvent('keydown', { key: 'Enter' });
+            terminalInput.dispatchEvent(event);
+        };
     </script>
 </body>
 </html>
