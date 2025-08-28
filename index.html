@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Notebook Poem</title>
+    <title>Dear Divya</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -22,6 +22,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            transition: background 0.5s ease;
         }
         
         .container {
@@ -131,11 +132,22 @@
             position: relative;
             padding-left: 5px;
             border-left: 2px solid transparent;
-            transition: border-left 0.3s ease;
+            transition: border-left 0.3s ease, transform 0.2s ease;
+        }
+        
+        .line.visible {
+            opacity: 1;
         }
         
         .line:hover {
             border-left: 2px solid #ff6b6b;
+            transform: translateX(5px);
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, rgba(255, 215, 0, 0.3), rgba(255, 215, 0, 0.1));
+            padding: 0 3px;
+            border-radius: 2px;
         }
         
         .emoji {
@@ -182,6 +194,12 @@
             66% {
                 transform: translateY(5px) rotate(3deg);
             }
+        }
+        
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
         
         .cursor {
@@ -295,6 +313,66 @@
             animation: float 5s ease-in-out infinite;
         }
         
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background: rgba(139, 124, 90, 0.3);
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #8b7c5a, #5d4037);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .save-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #8b7c5a;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 20;
+        }
+        
+        .save-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(93, 64, 55, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .save-notification.show {
+            opacity: 1;
+        }
+        
+        .line-number {
+            position: absolute;
+            left: 10px;
+            color: #8b7c5a;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 500px) {
             .poem {
@@ -308,6 +386,14 @@
             .btn {
                 padding: 8px 12px;
                 font-size: 0.9rem;
+            }
+            
+            .page {
+                padding: 20px 15px 20px 40px;
+            }
+            
+            .notebook::before {
+                left: 30px;
             }
         }
     </style>
@@ -332,12 +418,19 @@
             </div>
         </div>
         
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
         <div class="controls">
             <button class="btn" id="restartBtn">
                 <i class="fas fa-redo"></i> Restart
             </button>
             <button class="btn" id="pauseBtn">
                 <i class="fas fa-pause"></i> Pause
+            </button>
+            <button class="btn" id="speedBtn">
+                <i class="fas fa-tachometer-alt"></i> Speed: 1x
             </button>
         </div>
         
@@ -353,13 +446,21 @@
         <i class="fas fa-volume-mute"></i>
     </div>
     
+    <div class="save-btn">
+        <i class="fas fa-download"></i>
+    </div>
+    
+    <div class="save-notification" id="saveNotification">
+        <i class="fas fa-check"></i> Poem saved to your device
+    </div>
+    
     <audio class="writing-sound" loop>
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-writing-on-notebook-2581.mp3" type="audio/mpeg">
     </audio>
 
     <script>
         const poemLines = [
-            {text: "First—", delay: 800},
+            {text: "Dear Divya, kamama\nFirst—", delay: 800},
             {text: "I'm not cold ❄️...", delay: 1000, emoji: "❄️", emojiCount: 2, emotion: "cold"},
             {text: "but if that's the name you give me,", delay: 1200},
             {text: "then maybe it fits,", delay: 1000},
@@ -443,39 +544,66 @@
         const poemContainer = document.querySelector('.poem');
         const restartBtn = document.getElementById('restartBtn');
         const pauseBtn = document.getElementById('pauseBtn');
+        const speedBtn = document.getElementById('speedBtn');
         const soundToggle = document.querySelector('.sound-toggle');
         const writingSound = document.querySelector('.writing-sound');
         const themeButtons = document.querySelectorAll('.theme-btn');
+        const saveBtn = document.querySelector('.save-btn');
+        const saveNotification = document.getElementById('saveNotification');
+        const progressBar = document.getElementById('progressBar');
+        
         let currentThemeIndex = 0;
         const themes = ['theme-default', 'theme-blue', 'theme-pink', 'theme-green'];
         let timeouts = [];
         let isPaused = false;
-        let pausedAt = 0;
+        let currentLine = 0;
         let soundEnabled = false;
+        let speedMultiplier = 1;
+        let speedOptions = [0.5, 1, 1.5, 2];
+        let currentSpeedIndex = 1;
         
-        function typePoem() {
-            // Clear any existing timeouts
-            timeouts.forEach(timeout => clearTimeout(timeout));
-            timeouts = [];
-            poemContainer.innerHTML = '';
+        function typePoem(startFrom = 0) {
+            // Clear any existing timeouts if starting from beginning
+            if (startFrom === 0) {
+                timeouts.forEach(timeout => clearTimeout(timeout));
+                timeouts = [];
+                poemContainer.innerHTML = '';
+                currentLine = 0;
+                progressBar.style.width = '0%';
+            }
             
             let cumulativeDelay = 0;
             
-            poemLines.forEach((line, index) => {
-                cumulativeDelay += line.delay;
+            // Create all lines up to current point (for resume)
+            for (let i = 0; i < startFrom; i++) {
+                const lineElement = createLineElement(i);
+                poemContainer.appendChild(lineElement);
+            }
+            
+            // Process remaining lines
+            for (let i = startFrom; i < poemLines.length; i++) {
+                cumulativeDelay += poemLines[i].delay;
                 
                 const timeoutId = setTimeout(() => {
-                    if (isPaused) return;
+                    if (isPaused) {
+                        currentLine = i; // Remember where we paused
+                        return;
+                    }
                     
-                    const lineElement = document.createElement('div');
-                    lineElement.classList.add('line');
-                    lineElement.innerHTML = line.text;
-                    
+                    const lineElement = createLineElement(i);
                     poemContainer.appendChild(lineElement);
                     
-                    if (line.emoji) {
-                        for (let i = 0; i < (line.emojiCount || 2); i++) {
-                            createEmoji(line.emoji, lineElement, line.emotion);
+                    // Update progress bar
+                    progressBar.style.width = `${((i + 1) / poemLines.length) * 100}%`;
+                    
+                    // Make line visible
+                    setTimeout(() => {
+                        lineElement.classList.add('visible');
+                    }, 10);
+                    
+                    if (poemLines[i].emoji) {
+                        for (let j = 0; j < (poemLines[i].emojiCount || 2); j++) {
+                            createEmoji(poemLines[i].emoji, lineElement, poemLines[i].emotion);
                         }
                     }
                     
@@ -484,10 +612,10 @@
                         lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }, 100);
                     
-                }, cumulativeDelay);
+                }, cumulativeDelay / speedMultiplier);
                 
                 timeouts.push(timeoutId);
-            });
+            }
             
             // Add blinking cursor at the end
             const cursorTimeout = setTimeout(() => {
@@ -500,15 +628,45 @@
                 if (soundEnabled) {
                     writingSound.pause();
                 }
-            }, cumulativeDelay + 500);
+            }, cumulativeDelay / speedMultiplier + 500);
             
             timeouts.push(cursorTimeout);
             
             // Start writing sound if enabled
-            if (soundEnabled) {
+            if (soundEnabled && startFrom === 0) {
                 writingSound.currentTime = 0;
                 writingSound.play();
+            } else if (soundEnabled) {
+                writingSound.play();
             }
+        }
+        
+        function createLineElement(index) {
+            const lineElement = document.createElement('div');
+            lineElement.classList.add('line');
+            
+            // Add line number
+            const lineNumber = document.createElement('span');
+            lineNumber.classList.add('line-number');
+            lineNumber.textContent = index + 1;
+            lineElement.appendChild(lineNumber);
+            
+            // Add text with some words highlighted
+            const text = poemLines[index].text;
+            const words = text.split(' ');
+            let highlightedText = '';
+            
+            // Randomly highlight some words for emphasis
+            words.forEach(word => {
+                if (Math.random() > 0.8 && word.length > 3 && !word.includes('—') && !word.includes('?')) {
+                    highlightedText += `<span class="highlight">${word}</span> `;
+                } else {
+                    highlightedText += `${word} `;
+                }
+            });
+            
+            lineElement.innerHTML += highlightedText;
+            return lineElement;
         }
         
         function createEmoji(emoji, parentElement, emotion) {
@@ -523,7 +681,13 @@
             
             emojiElement.style.left = `${leftPos}%`;
             emojiElement.style.top = `${topPos}%`;
-            emojiElement.style.animation = `popInOut ${2 + Math.random() * 1}s ease-in-out forwards`;
+            
+            // Different animations based on emotion
+            if (emotion === 'love' || emotion === 'happy') {
+                emojiElement.style.animation = `heartbeat ${1 + Math.random() * 0.5}s ease-in-out forwards, popInOut ${2 + Math.random() * 1}s ease-in-out forwards`;
+            } else {
+                emojiElement.style.animation = `popInOut ${2 + Math.random() * 1}s ease-in-out forwards`;
+            }
             
             parentElement.appendChild(emojiElement);
             
@@ -550,7 +714,9 @@
             
             if (soundEnabled) {
                 soundToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
-                writingSound.play();
+                if (!isPaused) {
+                    writingSound.play();
+                }
             } else {
                 soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
                 writingSound.pause();
@@ -561,28 +727,71 @@
             isPaused = !isPaused;
             
             if (isPaused) {
+                // Pause the animation
+                timeouts.forEach(timeout => clearTimeout(timeout));
                 pauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
                 writingSound.pause();
             } else {
+                // Resume from current line
                 pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                typePoem(currentLine);
+                
                 if (soundEnabled) {
                     writingSound.play();
                 }
-                // Continue typing from where we left off
-                typePoem();
             }
+        }
+        
+        function changeSpeed() {
+            currentSpeedIndex = (currentSpeedIndex + 1) % speedOptions.length;
+            speedMultiplier = speedOptions[currentSpeedIndex];
+            speedBtn.innerHTML = `<i class="fas fa-tachometer-alt"></i> Speed: ${speedMultiplier}x`;
+            
+            if (!isPaused) {
+                // Restart with new speed
+                togglePause();
+                togglePause();
+            }
+        }
+        
+        function savePoem() {
+            const poemText = poemLines.map(line => line.text).join('\n');
+            const blob = new Blob([poemText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'jack-of-all-trades-poem.txt';
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            // Show notification
+            saveNotification.classList.add('show');
+            setTimeout(() => {
+                saveNotification.classList.remove('show');
+            }, 3000);
         }
         
         // Event listeners
         restartBtn.addEventListener('click', () => {
             isPaused = false;
             pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-            typePoem();
+            typePoem(0);
         });
         
         pauseBtn.addEventListener('click', togglePause);
         
+        speedBtn.addEventListener('click', changeSpeed);
+        
         soundToggle.addEventListener('click', toggleSound);
+        
+        saveBtn.addEventListener('click', savePoem);
         
         themeButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -591,7 +800,7 @@
         });
         
         // Start the typing effect when page loads
-        window.onload = typePoem;
+        window.onload = () => typePoem(0);
     </script>
 </body>
 </html>
