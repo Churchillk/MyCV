@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dear Divya</title>
+    <title>Enhanced Notebook Poem</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -460,7 +460,7 @@
 
     <script>
         const poemLines = [
-            {text: "Dear Divya, kamama\nFirst—", delay: 800},
+            {text: "First—", delay: 800},
             {text: "I'm not cold ❄️...", delay: 1000, emoji: "❄️", emojiCount: 2, emotion: "cold"},
             {text: "but if that's the name you give me,", delay: 1200},
             {text: "then maybe it fits,", delay: 1000},
@@ -559,8 +559,8 @@
         let currentLine = 0;
         let soundEnabled = false;
         let speedMultiplier = 1;
-        let speedOptions = [0.5, 1, 1.5, 2];
-        let currentSpeedIndex = 1;
+        let speedOptions = [0.7, 1, 1.5, 2];
+        let currentSpeedIndex = 0.7;
         
         function typePoem(startFrom = 0) {
             // Clear any existing timeouts if starting from beginning
