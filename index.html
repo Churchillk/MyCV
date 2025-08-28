@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebook Poem - Jack of All Trades</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5ecd2;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            background-image: linear-gradient(rgba(255, 252, 242, 0.7), rgba(255, 252, 242, 0.7)), 
+                              url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='none'/%3E%3Cpath d='M0 0v100M20 0v100M40 0v100M60 0v100M80 0v100M100 0v100' stroke='%23d9cdac' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+            min-height: 100vh;
+        }
+        
+        .notebook {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px 15px 40px 15px;
+            position: relative;
+        }
+        
+        .notebook::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 30px;
+            height: 100%;
+            width: 2px;
+            background-color: #ff6b6b;
+        }
+        
+        .page {
+            background-color: #fffbf0;
+            padding: 30px 20px 30px 45px;
+            border-radius: 3px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30px;
+            background-color: rgba(179, 19, 18, 0.1);
+        }
+        
+        h1 {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            color: #444;
+            text-align: center;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        
+        .poem {
+            font-size: 1rem;
+            white-space: pre-line;
+            min-height: 80vh;
+        }
+        
+        .line {
+            margin-bottom: 12px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            position: relative;
+        }
+        
+        .emoji {
+            position: absolute;
+            font-size: 1.8rem;
+            z-index: 10;
+            opacity: 0;
+            animation: popInOut 2s ease-in-out;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes popInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.8);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(0) scale(1.2);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background-color: #333;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+        
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+        
+        .theme-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        /* Different themes */
+        .theme-blue {
+            background-color: #e6f2ff;
+            color: #004680;
+        }
+        
+        .theme-blue .notebook::before {
+            background-color: #4d94ff;
+        }
+        
+        .theme-blue .page::after {
+            background-color: rgba(77, 148, 255, 0.1);
+        }
+        
+        .theme-pink {
+            background-color: #ffe6f2;
+            color: #80004d;
+        }
+        
+        .theme-pink .notebook::before {
+            background-color: #ff4d94;
+        }
+        
+        .theme-pink .page::after {
+            background-color: rgba(255, 77, 148, 0.1);
+        }
+        
+        .theme-green {
+            background-color: #e6ffe6;
+            color: #004d00;
+        }
+        
+        .theme-green .notebook::before {
+            background-color: #4dff4d;
+        }
+        
+        .theme-green .page::after {
+            background-color: rgba(77, 255, 77, 0.1);
+        }
+    </style>
+</head>
+<body class="theme-default">
+    <div class="notebook">
+        <div class="page">
+            <h1>Jack of All Trades 🥀</h1>
+            <div class="poem"></div>
+        </div>
+    </div>
+    
+    <div class="theme-control" onclick="changeTheme()">🎨</div>
+
+    <script>
+        const poemLines = [
+            {text: "First—", delay: 800},
+            {text: "I'm not cold ❄️...", delay: 1000, emoji: "❄️", emojiCount: 2},
+            {text: "but if that's the name you give me,", delay: 1200},
+            {text: "then maybe it fits,", delay: 1000},
+            {text: "in the way a coat fits on a stormy night.", delay: 1500, emoji: "🌧️", emojiCount: 3},
+            
+            {text: "Second—", delay: 800},
+            {text: "I missed my step that morning ☀️,", delay: 1200, emoji: "☀️", emojiCount: 2},
+            {text: "your words deserved more than just", delay: 1200},
+            {text: "\"thank you & amen.\"", delay: 1000},
+            {text: "My bad—", delay: 800},
+            {text: "I know.", delay: 800, emoji: "😔", emojiCount: 2},
+            
+            {text: "You want to learn what makes me happy 💭,", delay: 1500, emoji: "💭", emojiCount: 2},
+            {text: "yet when I try to unwrap myself,", delay: 1200},
+            {text: "you tell me \"shut up\",", delay: 1000, emoji: "😶", emojiCount: 2},
+            {text: "or ask \"sasa umeanza kuwa personal?\"", delay: 1500},
+            {text: "It feels like the poet in you 🌹", delay: 1200, emoji: "🌹", emojiCount: 2},
+            {text: "and the real you ⚡ clash sometimes.", delay: 1200, emoji: "⚡", emojiCount: 2},
+            {text: "I like the poet more—", delay: 1000},
+            {text: "the calm ink that flows,", delay: 1000},
+            {text: "not the bossy storm.", delay: 1000, emoji: "🌪️", emojiCount: 2},
+            
+            {text: "If roles were reversed—", delay: 1000},
+            {text: "would you bear it?", delay: 800},
+            {text: "Me shutting your voice down", delay: 1000},
+            {text: "while you're trying to be seen?", delay: 1000, emoji: "👁️", emojiCount: 2},
+            {text: "Maybe you do listen,", delay: 800},
+            {text: "maybe you don't...", delay: 1000, emoji: "🤔", emojiCount: 2},
+            {text: "but silence has its weight too.", delay: 1200, emoji: "🔇", emojiCount: 2},
+            
+            {text: "I know I don't say much.", delay: 1000},
+            {text: "You call it cold,", delay: 800},
+            {text: "sometimes even problem (jokingly).", delay: 1200},
+            {text: "But if I am the problem 🪞,", delay: 1200, emoji: "🪞", emojiCount: 2},
+            {text: "tell me—", delay: 600},
+            {text: "what solution are you bringing?", delay: 1200, emoji: "❓", emojiCount: 3},
+            {text: "Because I like your company,", delay: 1000},
+            {text: "and I walk careful—", delay: 800},
+            {text: "never trying to offend.", delay: 1000, emoji: "🚶‍♂️", emojiCount: 2},
+            
+            {text: "You think you've known me forever,", delay: 1200},
+            {text: "because I've been an open book 📖", delay: 1200, emoji: "📖", emojiCount: 2},
+            {text: "with missing chapters.", delay: 1000, emoji: "📑", emojiCount: 2},
+            {text: "Truth is,", delay: 600},
+            {text: "no one can ever love enough.", delay: 1200, emoji: "💔", emojiCount: 2},
+            {text: "Not me, not you.", delay: 800},
+            {text: "But together—", delay: 800},
+            {text: "we can figure things out.", delay: 1200, emoji: "🤝", emojiCount: 2},
+            
+            {text: "What makes me happy?", delay: 800},
+            {text: "Peace of mind 🌌.", delay: 1000, emoji: "🌌", emojiCount: 3},
+            {text: "That's why I'm always alone.", delay: 1200, emoji: "🧘‍♂️", emojiCount: 2},
+            {text: "It's not arguments I fear—", delay: 1000},
+            {text: "I never called it that.", delay: 800},
+            {text: "I just share my thoughts,", delay: 800},
+            {text: "my feelings,", delay: 600},
+            {text: "because you asked me to speak.", delay: 1200},
+            {text: "But when I do—", delay: 800},
+            {text: "you turn away,", delay: 800, emoji: "😞", emojiCount: 2},
+            {text: "and I wonder... what's the point?", delay: 1500, emoji: "💭", emojiCount: 3},
+            
+            {text: "Still, thank you ❤️,", delay: 1000, emoji: "❤️", emojiCount: 3},
+            {text: "for caring enough to be afraid.", delay: 1200, emoji: "🙏", emojiCount: 2},
+            {text: "Meeting you was no accident—", delay: 1200},
+            {text: "a pleasure I can't deny.", delay: 1000, emoji: "😊", emojiCount: 2},
+            
+            {text: "I also want to know you.", delay: 1000},
+            {text: "But I'm built different,", delay: 800},
+            {text: "just as you are 🌙.", delay: 1000, emoji: "🌙", emojiCount: 2},
+            {text: "Sometimes tough,", delay: 600, emoji: "🪨", emojiCount: 1},
+            {text: "sometimes soft.", delay: 600, emoji: "🛏️", emojiCount: 1},
+            {text: "Sometimes right,", delay: 600, emoji: "✅", emojiCount: 1},
+            {text: "sometimes wrong.", delay: 600, emoji: "❌", emojiCount: 1},
+            {text: "All I ask—", delay: 600},
+            {text: "accept that balance.", delay: 800, emoji: "⚖️", emojiCount: 2},
+            {text: "Because peace is my love language 💎,", delay: 1500, emoji: "💎", emojiCount: 3},
+            {text: "and without it,", delay: 600},
+            {text: "love is just noise.", delay: 1000, emoji: "🔊", emojiCount: 3}
+        ];
+        
+        const poemContainer = document.querySelector('.poem');
+        let currentThemeIndex = 0;
+        const themes = ['theme-default', 'theme-blue', 'theme-pink', 'theme-green'];
+        
+        function typePoem() {
+            let cumulativeDelay = 0;
+            
+            poemLines.forEach((line, index) => {
+                cumulativeDelay += line.delay;
+                
+                setTimeout(() => {
+                    const lineElement = document.createElement('div');
+                    lineElement.classList.add('line');
+                    lineElement.innerHTML = line.text;
+                    
+                    poemContainer.appendChild(lineElement);
+                    
+                    if (line.emoji) {
+                        for (let i = 0; i < (line.emojiCount || 2); i++) {
+                            createEmoji(line.emoji, lineElement);
+                        }
+                    }
+                    
+                    // Scroll to keep the current line in view
+                    setTimeout(() => {
+                        lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                    
+                }, cumulativeDelay);
+            });
+            
+            // Add blinking cursor at the end
+            setTimeout(() => {
+                const cursor = document.createElement('div');
+                cursor.classList.add('cursor');
+                poemContainer.appendChild(cursor);
+            }, cumulativeDelay + 500);
+        }
+        
+        function createEmoji(emoji, parentElement) {
+            const emojiElement = document.createElement('div');
+            emojiElement.classList.add('emoji');
+            emojiElement.innerHTML = emoji;
+            
+            // Random position around the text
+            const leftPos = Math.random() * 80 + 10; // 10% to 90%
+            const topPos = Math.random() * 100;
+            
+            emojiElement.style.left = `${leftPos}%`;
+            emojiElement.style.top = `${topPos}%`;
+            emojiElement.style.animationDelay = `${Math.random() * 0.5}s`;
+            
+            parentElement.appendChild(emojiElement);
+            
+            // Remove emoji after animation completes
+            setTimeout(() => {
+                emojiElement.remove();
+            }, 2000);
+        }
+        
+        function changeTheme() {
+            const body = document.body;
+            
+            // Remove current theme
+            body.classList.remove(themes[currentThemeIndex]);
+            
+            // Move to next theme
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            
+            // Apply new theme
+            body.classList.add(themes[currentThemeIndex]);
+        }
+        
+        // Start the typing effect when page loads
+        window.onload = typePoem;
+    </script>
+</body>
+</html>
