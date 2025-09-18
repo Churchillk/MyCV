@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Dodge Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+      padding: 20px;
+    }
+    .game-wrapper {
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 600px;
+      aspect-ratio: 1/1;
+    }
+    .container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #4e54c8, #8f94fb);
+      overflow: hidden;
+    }
+    .player {
+      position: absolute;
+      background: linear-gradient(45deg, #ff9a00, #ff6a00);
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(255, 106, 0, 0.7);
+      transition: transform 0.1s;
+      z-index: 10;
+    }
+    .player.shielded {
+      box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, inset 0 0 20px rgba(0, 255, 255, 0.5);
+    }
+    .player.speed-boost {
+      box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.5);
+    }
+    .player:hover {
+      transform: scale(1.1);
+    }
+    .enemy {
+      position: absolute;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.2s;
+    }
+    .enemy.special {
+      animation: pulse 1s infinite alternate;
+      box-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
+    }
+    .enemy:hover {
+      transform: scale(1.1);
+    }
+    .power-up {
+      position: absolute;
+      border-radius: 50%;
+      animation: float 3s infinite ease-in-out;
+      z-index: 5;
+    }
+    .power-up.shield {
+      background: radial-gradient(circle at 30% 30%, #00ffff, #0088ff);
+      box-shadow: 0 0 10px #00ffff, 0 0 15px #00ffff;
+    }
+    .power-up.speed {
+      background: radial-gradient(circle at 30% 30%, #00ff00, #00aa00);
+      box-shadow: 0 0 10px #00ff00, 0 0 15px #00ff00;
+    }
+    .power-up.points {
+      background: radial-gradient(circle at 30% 30%, #ffff00, #ffaa00);
+      box-shadow: 0 0 10px #ffff00, 0 0 15px #ffff00;
+    }
+    .score-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 10px;
+      z-index: 5;
+    }
+    .controls {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      z-index: 5;
+    }
+    .game-over {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+      z-index: 20;
+      border-radius: 20px;
+      padding: 20px;
+    }
+    .final-score {
+      font-size: 20px;
+      margin: 15px 0;
+      color: #ff6a00;
+    }
+    .power-up-indicators {
+      position: absolute;
+      top: 10px;
+      right: 70px;
+      display: flex;
+      gap: 8px;
+    }
+    .power-up-indicator {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    .power-up-indicator.active {
+      opacity: 1;
+    }
+    .power-up-indicator.shield {
+      background: #00ffff;
+      box-shadow: 0 0 5px #00ffff;
+    }
+    .power-up-indicator.speed {
+      background: #00ff00;
+      box-shadow: 0 0 5px #00ff00;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(to right, #ff9a00, #ff6a00);
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .level-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 10px;
+      z-index: 5;
+    }
+    .combo-counter {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      font-weight: bold;
+      font-size: 14px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 5px 10px;
+      border-radius: 10px;
+      z-index: 5;
+      display: none;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+    .container {
+      animation: pulse 3s infinite ease-in-out;
+    }
+    .shake {
+      animation: shake 0.5s;
+    }
+    
+    /* Mobile controls */
+    .mobile-controls {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      justify-content: space-between;
+      padding: 0 20px;
+      max-width: 400px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .control-btn {
+      width: 70px;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      color: white;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .game-wrapper {
+        max-width: 90vmin;
+        max-height: 90vmin;
+      }
+      .score-panel, .level-indicator {
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+      .power-up-indicators {
+        right: 60px;
+      }
+      .controls {
+        display: none;
+      }
+      .mobile-controls {
+        display: flex;
+      }
+    }
+    
+    @media (max-width: 400px) {
+      .game-wrapper {
+        max-width: 95vmin;
+        max-height: 95vmin;
+      }
+      .control-btn {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrapper">
+    <div class="container" id="gameArea">
+      <div class="score-panel">Score: <span id="scoreValue">0</span></div>
+      <div class="level-indicator">Level: <span id="levelValue">1</span></div>
+      <div class="power-up-indicators">
+        <div class="power-up-indicator shield" id="shieldIndicator"></div>
+        <div class="power-up-indicator speed" id="speedIndicator"></div>
+      </div>
+      <div class="combo-counter" id="comboCounter">Combo: 0x</div>
+      <div class="player" id="player"></div>
+      <div class="controls">Use Arrow Keys to move</div>
+      <div class="game-over" id="gameOver">
+        GAME OVER
+        <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+        <button onclick="restartGame()">Play Again</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mobile-controls">
+    <div class="control-btn" id="leftBtn">←</div>
+    <div class="control-btn" id="upBtn">↑</div>
+    <div class="control-btn" id="downBtn">↓</div>
+    <div class="control-btn" id="rightBtn">→</div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const player = document.getElementById("player");
+    const scoreValue = document.getElementById("scoreValue");
+    const levelValue = document.getElementById("levelValue");
+    const gameOverScreen = document.getElementById("gameOver");
+    const finalScore = document.getElementById("finalScore");
+    const shieldIndicator = document.getElementById("shieldIndicator");
+    const speedIndicator = document.getElementById("speedIndicator");
+    const comboCounter = document.getElementById("comboCounter");
+    
+    // Mobile control buttons
+    const leftBtn = document.getElementById("leftBtn");
+    const upBtn = document.getElementById("upBtn");
+    const downBtn = document.getElementById("downBtn");
+    const rightBtn = document.getElementById("rightBtn");
+
+    // Get container dimensions
+    const containerSize = Math.min(gameArea.offsetWidth, gameArea.offsetHeight);
+    const playerSize = containerSize * 0.08; // 8% of container size
+    let step = containerSize * 0.025; // player movement (2.5% of container)
+    
+    let score = 0;
+    let level = 1;
+    let gameRunning = true;
+    let enemies = [];
+    let powerUps = [];
+    let enemySpeed = containerSize * 0.003; // Relative to container size
+    let enemySpawnRate = 1500; // milliseconds
+    let powerUpSpawnRate = 10000; // milliseconds
+    let enemySpawnInterval;
+    let powerUpSpawnInterval;
+    let hasShield = false;
+    let speedBoostActive = false;
+    let combo = 0;
+    let comboTimeout;
+    let specialEnemyChance = 0.1; // 10% chance for special enemy
+
+    // Set player size
+    player.style.width = playerSize + "px";
+    player.style.height = playerSize + "px";
+
+    // Player position (start in center)
+    let playerPos = {
+      top: (containerSize - playerSize) / 2,
+      left: (containerSize - playerSize) / 2
+    };
+
+    // Initialize player position
+    player.style.top = playerPos.top + "px";
+    player.style.left = playerPos.left + "px";
+
+    // Handle keyboard controls
+    document.addEventListener("keydown", (e) => {
+      if (!gameRunning) return;
+      handleMove(e.key);
+    });
+
+    // Handle mobile controls
+    const setupMobileControls = () => {
+      const handleMobileMove = (direction) => {
+        if (!gameRunning) return;
+        handleMove(direction);
+      };
+      
+      leftBtn.addEventListener("touchstart", () => handleMobileMove("ArrowLeft"));
+      upBtn.addEventListener("touchstart", () => handleMobileMove("ArrowUp"));
+      downBtn.addEventListener("touchstart", () => handleMobileMove("ArrowDown"));
+      rightBtn.addEventListener("touchstart", () => handleMobileMove("ArrowRight"));
+      
+      // Prevent default to avoid scrolling when touching controls
+      document.querySelectorAll('.control-btn').forEach(btn => {
+        btn.addEventListener('touchmove', (e) => e.preventDefault());
+        btn.addEventListener('touchend', (e) => e.preventDefault());
+      });
+    };
+    
+    // Handle movement
+    const handleMove = (key) => {
+      let moved = false;
+      let moveAmount = speedBoostActive ? step * 1.5 : step;
+
+      switch(key) {
+        case "ArrowUp":
+          if (playerPos.top > 0) {
+            playerPos.top -= moveAmount;
+            moved = true;
+          }
+          break;
+        case "ArrowDown":
+          if (playerPos.top < containerSize - playerSize) {
+            playerPos.top += moveAmount;
+            moved = true;
+          }
+          break;
+        case "ArrowLeft":
+          if (playerPos.left > 0) {
+            playerPos.left -= moveAmount;
+            moved = true;
+          }
+          break;
+        case "ArrowRight":
+          if (playerPos.left < containerSize - playerSize) {
+            playerPos.left += moveAmount;
+            moved = true;
+          }
+          break;
+      }
+
+      if (moved) {
+        player.style.top = playerPos.top + "px";
+        player.style.left = playerPos.left + "px";
+
+        // Create movement particles
+        createParticles(playerPos.left + playerSize/2, playerPos.top + playerSize/2);
+      }
+    };
+
+    // Spawn new enemy
+    function spawnEnemy() {
+      const enemy = document.createElement("div");
+      enemy.classList.add("enemy");
+
+      // Random enemy appearance
+      const size = Math.random() * (playerSize * 0.6) + (playerSize * 0.6); // 60%-120% of player size
+      enemy.style.width = size + "px";
+      enemy.style.height = size + "px";
+
+      // Chance for special enemy
+      const isSpecial = Math.random() < specialEnemyChance;
+      if (isSpecial) {
+        enemy.classList.add("special");
+        enemy.style.background = "radial-gradient(circle, #ff0000, #800000)";
+      } else {
+        enemy.style.background = getRandomEnemyAppearance();
+      }
+      
+      enemy.style.boxShadow = `0 0 15px ${getRandomColor()}`;
+
+      // Start from outside the container
+      const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+      let startTop, startLeft;
+
+      switch(side) {
+        case 0: // top
+          startTop = -size;
+          startLeft = Math.random() * containerSize;
+          break;
+        case 1: // right
+          startTop = Math.random() * containerSize;
+          startLeft = containerSize;
+          break;
+        case 2: // bottom
+          startTop = containerSize;
+          startLeft = Math.random() * containerSize;
+          break;
+        case 3: // left
+          startTop = Math.random() * containerSize;
+          startLeft = -size;
+          break;
+      }
+
+      enemy.style.top = startTop + "px";
+      enemy.style.left = startLeft + "px";
+      gameArea.appendChild(enemy);
+
+      // Calculate direction toward player with some randomness
+      const targetX = playerPos.left + playerSize/2;
+      const targetY = playerPos.top + playerSize/2;
+      const startX = parseInt(enemy.style.left) + size/2;
+      const startY = parseInt(enemy.style.top) + size/2;
+
+      const angle = Math.atan2(targetY - startY, targetX - startX);
+      const randomAngle = (Math.random() - 0.5) * 0.4; // Add some randomness
+
+      const direction = {
+        x: Math.cos(angle + randomAngle),
+        y: Math.sin(angle + randomAngle)
+      };
+
+      enemies.push({
+        el: enemy,
+        pos: { top: startY - size/2, left: startX - size/2 },
+        direction,
+        size,
+        isSpecial,
+        speed: isSpecial ? enemySpeed * 1.5 : enemySpeed
+      });
+    }
+
+    // Spawn power-up
+    function spawnPowerUp() {
+      const powerUp = document.createElement("div");
+      powerUp.classList.add("power-up");
+      
+      const types = ["shield", "speed", "points"];
+      const type = types[Math.floor(Math.random() * types.length)];
+      powerUp.classList.add(type);
+      
+      const size = playerSize * 0.6; // 60% of player size
+      powerUp.style.width = size + "px";
+      powerUp.style.height = size + "px";
+      
+      powerUp.style.top = (Math.random() * (containerSize - 100) + 50) + "px";
+      powerUp.style.left = (Math.random() * (containerSize - 100) + 50) + "px";
+      
+      gameArea.appendChild(powerUp);
+      
+      powerUps.push({
+        el: powerUp,
+        pos: { 
+          top: parseInt(powerUp.style.top), 
+          left: parseInt(powerUp.style.left) 
+        },
+        type,
+        size
+      });
+    }
+
+    // Enemy movement
+    function moveEnemies() {
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        let enemyObj = enemies[i];
+        let { el, pos, direction, size, speed } = enemyObj;
+
+        pos.top += direction.y * speed;
+        pos.left += direction.x * speed;
+
+        el.style.top = pos.top + "px";
+        el.style.left = pos.left + "px";
+
+        // Remove enemies that are far outside the container
+        if (pos.top < -100 || pos.top > containerSize + 100 ||
+            pos.left < -100 || pos.left > containerSize + 100) {
+          gameArea.removeChild(el);
+          enemies.splice(i, 1);
+          continue;
+        }
+
+        checkCollision(pos, size, enemyObj.isSpecial);
+      }
+    }
+
+    // Check power-up collection
+    function checkPowerUps() {
+      for (let i = powerUps.length - 1; i >= 0; i--) {
+        let powerUp = powerUps[i];
+        
+        const playerCenter = {
+          x: playerPos.left + playerSize/2,
+          y: playerPos.top + playerSize/2
+        };
+        
+        const powerUpCenter = {
+          x: powerUp.pos.left + powerUp.size/2,
+          y: powerUp.pos.top + powerUp.size/2
+        };
+        
+        // Calculate distance between centers
+        const dx = playerCenter.x - powerUpCenter.x;
+        const dy = playerCenter.y - powerUpCenter.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Check if player collected power-up
+        if (distance < (playerSize/2 + powerUp.size/2)) {
+          gameArea.removeChild(powerUp.el);
+          powerUps.splice(i, 1);
+          applyPowerUp(powerUp.type);
+          createPowerUpEffect(playerCenter.x, playerCenter.y, powerUp.type);
+        }
+      }
+    }
+
+    // Apply power-up effect
+    function applyPowerUp(type) {
+      switch(type) {
+        case "shield":
+          hasShield = true;
+          player.classList.add("shielded");
+          shieldIndicator.classList.add("active");
+          setTimeout(() => {
+            hasShield = false;
+            player.classList.remove("shielded");
+            shieldIndicator.classList.remove("active");
+          }, 10000);
+          break;
+        case "speed":
+          speedBoostActive = true;
+          player.classList.add("speed-boost");
+          speedIndicator.classList.add("active");
+          setTimeout(() => {
+            speedBoostActive = false;
+            player.classList.remove("speed-boost");
+            speedIndicator.classList.remove("active");
+          }, 8000);
+          break;
+        case "points":
+          score += 500;
+          scoreValue.textContent = score;
+          break;
+      }
+    }
+
+    // Improved collision detection
+    function checkCollision(enemyPos, enemySize, isSpecial) {
+      const playerCenter = {
+        x: playerPos.left + playerSize/2,
+        y: playerPos.top + playerSize/2
+      };
+
+      const enemyCenter = {
+        x: enemyPos.left + enemySize/2,
+        y: enemyPos.top + enemySize/2
+      };
+
+      // Calculate distance between centers
+      const dx = playerCenter.x - enemyCenter.x;
+      const dy = playerCenter.y - enemyCenter.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Check if distance is less than sum of radii
+      if (distance < (playerSize/2 + enemySize/2)) {
+        if (hasShield) {
+          // Shield protects from one hit
+          hasShield = false;
+          player.classList.remove("shielded");
+          shieldIndicator.classList.remove("active");
+          createShieldBreakEffect(playerCenter.x, playerCenter.y);
+        } else {
+          createExplosion(playerCenter.x, playerCenter.y);
+          endGame();
+        }
+      }
+    }
+
+    // Create visual effects
+    function createParticles(x, y) {
+      for (let i = 0; i < 3; i++) {
+        const particle = document.createElement("div");
+        particle.classList.add("particle");
+
+        const size = Math.random() * 6 + 2;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
+        particle.style.background = getRandomColor();
+        particle.style.left = (x - size/2) + "px";
+        particle.style.top = (y - size/2) + "px";
+
+        gameArea.appendChild(particle);
+
+        // Animate and remove particle
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        let progress = 0;
+
+        const animateParticle = () => {
+          progress += 0.02;
+          if (progress >= 1) {
+            gameArea.removeChild(particle);
+            return;
+          }
+
+          particle.style.opacity = 1 - progress;
+          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 30) + "px";
+          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 30) + "px";
+
+          requestAnimationFrame(animateParticle);
+        };
+
+        requestAnimationFrame(animateParticle);
+      }
+    }
+
+    function createExplosion(x, y) {
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement("div");
+        particle.classList.add("particle");
+
+        const size = Math.random() * 8 + 4;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
+        particle.style.background = getRandomColor();
+        particle.style.left = (x - size/2) + "px";
+        particle.style.top = (y - size/2) + "px";
+
+        gameArea.appendChild(particle);
+
+        // Animate and remove particle
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        let progress = 0;
+
+        const animateParticle = () => {
+          progress += 0.02;
+          if (progress >= 1) {
+            gameArea.removeChild(particle);
+            return;
+          }
+
+          particle.style.opacity = 1 - progress;
+          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 50) + "px";
+          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 50) + "px";
+
+          requestAnimationFrame(animateParticle);
+        };
+
+        requestAnimationFrame(animateParticle);
+      }
+    }
+
+    function createPowerUpEffect(x, y, type) {
+      let color;
+      switch(type) {
+        case "shield": color = "#00ffff"; break;
+        case "speed": color = "#00ff00"; break;
+        case "points": color = "#ffff00"; break;
+      }
+      
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement("div");
+        particle.classList.add("particle");
+
+        const size = Math.random() * 6 + 4;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
+        particle.style.background = color;
+        particle.style.left = (x - size/2) + "px";
+        particle.style.top = (y - size/2) + "px";
+
+        gameArea.appendChild(particle);
+
+        // Animate and remove particle
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        let progress = 0;
+
+        const animateParticle = () => {
+          progress += 0.02;
+          if (progress >= 1) {
+            gameArea.removeChild(particle);
+            return;
+          }
+
+          particle.style.opacity = 1 - progress;
+          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 40) + "px";
+          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 40) + "px";
+
+          requestAnimationFrame(animateParticle);
+        };
+
+        requestAnimationFrame(animateParticle);
+      }
+    }
+
+    function createShieldBreakEffect(x, y) {
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement("div");
+        particle.classList.add("particle");
+
+        const size = Math.random() * 6 + 2;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
+        particle.style.background = "#00ffff";
+        particle.style.left = (x - size/2) + "px";
+        particle.style.top = (y - size/2) + "px";
+
+        gameArea.appendChild(particle);
+
+        // Animate and remove particle
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 3;
+        let progress = 0;
+
+        const animateParticle = () => {
+          progress += 0.02;
+          if (progress >= 1) {
+            gameArea.removeChild(particle);
+            return;
+          }
+
+          particle.style.opacity = 1 - progress;
+          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 60) + "px";
+          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 60) + "px";
+
+          requestAnimationFrame(animateParticle);
+        };
+
+        requestAnimationFrame(animateParticle);
+      }
+    }
+
+    // Score update + difficulty scaling
+    function updateScore() {
+      if (!gameRunning) return;
+      
+      // Increase combo for survival
+      combo++;
+      clearTimeout(comboTimeout);
+      
+      if (combo > 10) {
+        comboCounter.style.display = "block";
+        comboCounter.textContent = `Combo: ${combo}x`;
+        
+        // Score increases with combo
+        const pointsEarned = 1 + Math.floor(combo / 10);
+        score += pointsEarned;
+      } else {
+        comboCounter.style.display = "none";
+        score++;
+      }
+      
+      comboTimeout = setTimeout(() => {
+        combo = 0;
+        comboCounter.style.display = "none";
+      }, 2000);
+      
+      scoreValue.textContent = score;
+
+      // Level progression
+      const newLevel = Math.floor(score / 20) + 1;
+      if (newLevel > level) {
+        level = newLevel;
+        levelValue.textContent = level;
+
+        // Increase difficulty
+        enemySpeed = containerSize * (0.003 + (level * 0.0005));
+        enemySpawnRate = Math.max(500, 1500 - (level * 100));
+        specialEnemyChance = Math.min(0.3, 0.1 + (level * 0.02));
+
+        // Adjust spawn interval
+        clearInterval(enemySpawnInterval);
+        enemySpawnInterval = setInterval(spawnEnemy, enemySpawnRate);
+
+        // Visual feedback for level up
+        createExplosion(containerSize/2, containerSize/2);
+        gameArea.classList.add("shake");
+        setTimeout(() => gameArea.classList.remove("shake"), 500);
+      }
+    }
+
+    // Game over
+    function endGame() {
+      gameRunning = false;
+      clearInterval(enemySpawnInterval);
+      clearInterval(powerUpSpawnInterval);
+      finalScore.textContent = score;
+      gameOverScreen.style.display = "flex";
+    }
+
+    // Restart game
+    function restartGame() {
+      location.reload();
+    }
+
+    // Utility: random color
+    function getRandomColor() {
+      const hue = Math.floor(Math.random() * 360);
+      return `hsl(${hue}, 80%, 60%)`;
+    }
+
+    // Utility: random enemy appearance
+    function getRandomEnemyAppearance() {
+      const types = [
+        `radial-gradient(circle, ${getRandomColor()} 0%, ${getRandomColor()} 100%)`,
+        `linear-gradient(45deg, ${getRandomColor()}, ${getRandomColor()})`,
+        `repeating-linear-gradient(45deg, ${getRandomColor()}, ${getRandomColor()} 10px)`
+      ];
+      return types[Math.floor(Math.random() * types.length)];
+    }
+
+    // Handle window resize
+    function handleResize() {
+      // Game will automatically adjust as all sizes are relative
+    }
+
+    // Initialize the game
+    function init() {
+      setupMobileControls();
+      window.addEventListener('resize', handleResize);
+      
+      // Game loop
+      setInterval(() => {
+        if (gameRunning) {
+          moveEnemies();
+          checkPowerUps();
+        }
+      }, 20);
+
+      setInterval(updateScore, 500);
+
+      // Start enemy spawning
+      enemySpawnInterval = setInterval(spawnEnemy, enemySpawnRate);
+      
+      // Start power-up spawning
+      powerUpSpawnInterval = setInterval(spawnPowerUp, powerUpSpawnRate);
+
+      // Start with 3 enemies
+      for (let i = 0; i < 3; i++) {
+        setTimeout(spawnEnemy, i * 500);
+      }
+    }
+
+    // Start the game
+    init();
+  </script>
+</body>
+</html>
