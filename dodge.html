@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Dodge Game</title>
+  <title>Mouse-Controlled Dodge Game</title>
   <style>
     * {
       box-sizing: border-box;
@@ -19,6 +19,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow: hidden;
       padding: 20px;
+      cursor: none;
     }
     .game-wrapper {
       position: relative;
@@ -45,6 +46,7 @@
       box-shadow: 0 0 15px rgba(255, 106, 0, 0.7);
       transition: transform 0.1s;
       z-index: 10;
+      cursor: move;
     }
     .player.shielded {
       box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, inset 0 0 20px rgba(0, 255, 255, 0.5);
@@ -130,6 +132,7 @@
       z-index: 20;
       border-radius: 20px;
       padding: 20px;
+      cursor: auto;
     }
     .final-score {
       font-size: 20px;
@@ -237,33 +240,21 @@
     .shake {
       animation: shake 0.5s;
     }
-    
-    /* Mobile controls */
-    .mobile-controls {
-      display: none;
+
+    /* Custom cursor */
+    .custom-cursor {
       position: fixed;
-      bottom: 20px;
-      width: 100%;
-      justify-content: space-between;
-      padding: 0 20px;
-      max-width: 400px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .control-btn {
-      width: 70px;
-      height: 70px;
-      background: rgba(255, 255, 255, 0.2);
+      width: 20px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.7);
       border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      color: white;
-      user-select: none;
-      touch-action: manipulation;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: difference;
+      display: none;
     }
-    
+
     /* Responsive adjustments */
     @media (max-width: 600px) {
       .game-wrapper {
@@ -280,24 +271,18 @@
       .controls {
         display: none;
       }
-      .mobile-controls {
-        display: flex;
+      body {
+        cursor: auto;
       }
-    }
-    
-    @media (max-width: 400px) {
-      .game-wrapper {
-        max-width: 95vmin;
-        max-height: 95vmin;
-      }
-      .control-btn {
-        width: 60px;
-        height: 60px;
+      .custom-cursor {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
+  <div class="custom-cursor" id="customCursor"></div>
+
   <div class="game-wrapper">
     <div class="container" id="gameArea">
       <div class="score-panel">Score: <span id="scoreValue">0</span></div>
@@ -308,20 +293,13 @@
       </div>
       <div class="combo-counter" id="comboCounter">Combo: 0x</div>
       <div class="player" id="player"></div>
-      <div class="controls">Use Arrow Keys to move</div>
+      <div class="controls">Drag the player with your mouse</div>
       <div class="game-over" id="gameOver">
         GAME OVER
         <div class="final-score">Final Score: <span id="finalScore">0</span></div>
         <button onclick="restartGame()">Play Again</button>
       </div>
     </div>
-  </div>
-  
-  <div class="mobile-controls">
-    <div class="control-btn" id="leftBtn">←</div>
-    <div class="control-btn" id="upBtn">↑</div>
-    <div class="control-btn" id="downBtn">↓</div>
-    <div class="control-btn" id="rightBtn">→</div>
   </div>
 
   <script>
@@ -334,18 +312,12 @@
     const shieldIndicator = document.getElementById("shieldIndicator");
     const speedIndicator = document.getElementById("speedIndicator");
     const comboCounter = document.getElementById("comboCounter");
-    
-    // Mobile control buttons
-    const leftBtn = document.getElementById("leftBtn");
-    const upBtn = document.getElementById("upBtn");
-    const downBtn = document.getElementById("downBtn");
-    const rightBtn = document.getElementById("rightBtn");
+    const customCursor = document.getElementById("customCursor");
 
     // Get container dimensions
     const containerSize = Math.min(gameArea.offsetWidth, gameArea.offsetHeight);
     const playerSize = containerSize * 0.08; // 8% of container size
-    let step = containerSize * 0.025; // player movement (2.5% of container)
-    
+
     let score = 0;
     let level = 1;
     let gameRunning = true;
@@ -361,6 +333,7 @@
     let combo = 0;
     let comboTimeout;
     let specialEnemyChance = 0.1; // 10% chance for special enemy
+    let isDragging = false;
 
     // Set player size
     player.style.width = playerSize + "px";
@@ -376,71 +349,96 @@
     player.style.top = playerPos.top + "px";
     player.style.left = playerPos.left + "px";
 
-    // Handle keyboard controls
-    document.addEventListener("keydown", (e) => {
-      if (!gameRunning) return;
-      handleMove(e.key);
-    });
-
-    // Handle mobile controls
-    const setupMobileControls = () => {
-      const handleMobileMove = (direction) => {
-        if (!gameRunning) return;
-        handleMove(direction);
-      };
-      
-      leftBtn.addEventListener("touchstart", () => handleMobileMove("ArrowLeft"));
-      upBtn.addEventListener("touchstart", () => handleMobileMove("ArrowUp"));
-      downBtn.addEventListener("touchstart", () => handleMobileMove("ArrowDown"));
-      rightBtn.addEventListener("touchstart", () => handleMobileMove("ArrowRight"));
-      
-      // Prevent default to avoid scrolling when touching controls
-      document.querySelectorAll('.control-btn').forEach(btn => {
-        btn.addEventListener('touchmove', (e) => e.preventDefault());
-        btn.addEventListener('touchend', (e) => e.preventDefault());
+    // Mouse movement handling
+    function setupMouseControls() {
+      // Show custom cursor
+      document.addEventListener('mousemove', (e) => {
+        customCursor.style.display = 'block';
+        customCursor.style.left = e.clientX + 'px';
+        customCursor.style.top = e.clientY + 'px';
       });
-    };
-    
-    // Handle movement
-    const handleMove = (key) => {
-      let moved = false;
-      let moveAmount = speedBoostActive ? step * 1.5 : step;
 
-      switch(key) {
-        case "ArrowUp":
-          if (playerPos.top > 0) {
-            playerPos.top -= moveAmount;
-            moved = true;
-          }
-          break;
-        case "ArrowDown":
-          if (playerPos.top < containerSize - playerSize) {
-            playerPos.top += moveAmount;
-            moved = true;
-          }
-          break;
-        case "ArrowLeft":
-          if (playerPos.left > 0) {
-            playerPos.left -= moveAmount;
-            moved = true;
-          }
-          break;
-        case "ArrowRight":
-          if (playerPos.left < containerSize - playerSize) {
-            playerPos.left += moveAmount;
-            moved = true;
-          }
-          break;
-      }
+      // Mouse down on player
+      player.addEventListener('mousedown', (e) => {
+        if (!gameRunning) return;
+        isDragging = true;
+        player.style.cursor = 'grabbing';
+        e.preventDefault(); // Prevent text selection
+      });
 
-      if (moved) {
-        player.style.top = playerPos.top + "px";
+      // Mouse move in game area
+      gameArea.addEventListener('mousemove', (e) => {
+        if (!isDragging || !gameRunning) return;
+
+        const rect = gameArea.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Calculate new position (center player on cursor)
+        let newLeft = x - playerSize / 2;
+        let newTop = y - playerSize / 2;
+
+        // Constrain to game area boundaries
+        newLeft = Math.max(0, Math.min(containerSize - playerSize, newLeft));
+        newTop = Math.max(0, Math.min(containerSize - playerSize, newTop));
+
+        // Update player position
+        playerPos.left = newLeft;
+        playerPos.top = newTop;
+
         player.style.left = playerPos.left + "px";
+        player.style.top = playerPos.top + "px";
 
         // Create movement particles
         createParticles(playerPos.left + playerSize/2, playerPos.top + playerSize/2);
-      }
-    };
+      });
+
+      // Mouse up anywhere
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+        player.style.cursor = 'grab';
+      });
+
+      // Touch support for mobile
+      player.addEventListener('touchstart', (e) => {
+        if (!gameRunning) return;
+        isDragging = true;
+        e.preventDefault(); // Prevent scrolling
+      });
+
+      gameArea.addEventListener('touchmove', (e) => {
+        if (!isDragging || !gameRunning) return;
+
+        const touch = e.touches[0];
+        const rect = gameArea.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        // Calculate new position (center player on touch)
+        let newLeft = x - playerSize / 2;
+        let newTop = y - playerSize / 2;
+
+        // Constrain to game area boundaries
+        newLeft = Math.max(0, Math.min(containerSize - playerSize, newLeft));
+        newTop = Math.max(0, Math.min(containerSize - playerSize, newTop));
+
+        // Update player position
+        playerPos.left = newLeft;
+        playerPos.top = newTop;
+
+        player.style.left = playerPos.left + "px";
+        player.style.top = playerPos.top + "px";
+
+        // Create movement particles
+        createParticles(playerPos.left + playerSize/2, playerPos.top + playerSize/2);
+
+        e.preventDefault(); // Prevent scrolling
+      });
+
+      document.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+    }
 
     // Spawn new enemy
     function spawnEnemy() {
@@ -460,7 +458,7 @@
       } else {
         enemy.style.background = getRandomEnemyAppearance();
       }
-      
+
       enemy.style.boxShadow = `0 0 15px ${getRandomColor()}`;
 
       // Start from outside the container
@@ -518,25 +516,25 @@
     function spawnPowerUp() {
       const powerUp = document.createElement("div");
       powerUp.classList.add("power-up");
-      
+
       const types = ["shield", "speed", "points"];
       const type = types[Math.floor(Math.random() * types.length)];
       powerUp.classList.add(type);
-      
+
       const size = playerSize * 0.6; // 60% of player size
       powerUp.style.width = size + "px";
       powerUp.style.height = size + "px";
-      
+
       powerUp.style.top = (Math.random() * (containerSize - 100) + 50) + "px";
       powerUp.style.left = (Math.random() * (containerSize - 100) + 50) + "px";
-      
+
       gameArea.appendChild(powerUp);
-      
+
       powerUps.push({
         el: powerUp,
-        pos: { 
-          top: parseInt(powerUp.style.top), 
-          left: parseInt(powerUp.style.left) 
+        pos: {
+          top: parseInt(powerUp.style.top),
+          left: parseInt(powerUp.style.left)
         },
         type,
         size
@@ -571,22 +569,22 @@
     function checkPowerUps() {
       for (let i = powerUps.length - 1; i >= 0; i--) {
         let powerUp = powerUps[i];
-        
+
         const playerCenter = {
           x: playerPos.left + playerSize/2,
           y: playerPos.top + playerSize/2
         };
-        
+
         const powerUpCenter = {
           x: powerUp.pos.left + powerUp.size/2,
           y: powerUp.pos.top + powerUp.size/2
         };
-        
+
         // Calculate distance between centers
         const dx = playerCenter.x - powerUpCenter.x;
         const dy = playerCenter.y - powerUpCenter.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         // Check if player collected power-up
         if (distance < (playerSize/2 + powerUp.size/2)) {
           gameArea.removeChild(powerUp.el);
@@ -741,7 +739,7 @@
         case "speed": color = "#00ff00"; break;
         case "points": color = "#ffff00"; break;
       }
-      
+
       for (let i = 0; i < 15; i++) {
         const particle = document.createElement("div");
         particle.classList.add("particle");
@@ -818,15 +816,15 @@
     // Score update + difficulty scaling
     function updateScore() {
       if (!gameRunning) return;
-      
+
       // Increase combo for survival
       combo++;
       clearTimeout(comboTimeout);
-      
+
       if (combo > 10) {
         comboCounter.style.display = "block";
         comboCounter.textContent = `Combo: ${combo}x`;
-        
+
         // Score increases with combo
         const pointsEarned = 1 + Math.floor(combo / 10);
         score += pointsEarned;
@@ -834,12 +832,12 @@
         comboCounter.style.display = "none";
         score++;
       }
-      
+
       comboTimeout = setTimeout(() => {
         combo = 0;
         comboCounter.style.display = "none";
       }, 2000);
-      
+
       scoreValue.textContent = score;
 
       // Level progression
@@ -894,16 +892,10 @@
       return types[Math.floor(Math.random() * types.length)];
     }
 
-    // Handle window resize
-    function handleResize() {
-      // Game will automatically adjust as all sizes are relative
-    }
-
     // Initialize the game
     function init() {
-      setupMobileControls();
-      window.addEventListener('resize', handleResize);
-      
+      setupMouseControls();
+
       // Game loop
       setInterval(() => {
         if (gameRunning) {
@@ -916,7 +908,7 @@
 
       // Start enemy spawning
       enemySpawnInterval = setInterval(spawnEnemy, enemySpawnRate);
-      
+
       // Start power-up spawning
       powerUpSpawnInterval = setInterval(spawnPowerUp, powerUpSpawnRate);
 
