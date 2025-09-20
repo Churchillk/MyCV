@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mouse-Controlled Dodge Game</title>
+  <title>Joystick-Controlled Dodge Game</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,6 +12,7 @@
     }
     body {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
@@ -19,7 +20,6 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       overflow: hidden;
       padding: 20px;
-      cursor: none;
     }
     .game-wrapper {
       position: relative;
@@ -27,8 +27,9 @@
       border-radius: 20px;
       overflow: hidden;
       width: 100%;
-      max-width: 600px;
+      max-width: 700px;
       aspect-ratio: 1/1;
+      margin-bottom: 30px;
     }
     .container {
       position: absolute;
@@ -46,7 +47,6 @@
       box-shadow: 0 0 15px rgba(255, 106, 0, 0.7);
       transition: transform 0.1s;
       z-index: 10;
-      cursor: move;
     }
     .player.shielded {
       box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, inset 0 0 20px rgba(0, 255, 255, 0.5);
@@ -132,7 +132,6 @@
       z-index: 20;
       border-radius: 20px;
       padding: 20px;
-      cursor: auto;
     }
     .final-score {
       font-size: 20px;
@@ -240,26 +239,45 @@
     .shake {
       animation: shake 0.5s;
     }
-
-    /* Custom cursor */
-    .custom-cursor {
-      position: fixed;
-      width: 20px;
-      height: 20px;
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      mix-blend-mode: difference;
-      display: none;
+    
+    /* Joystick container */
+    .joystick-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin-top: 20px;
     }
-
+    
+    /* Joystick background */
+    .joystick-bg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Joystick handle */
+    .joystick-handle {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(to right, #ff9a00, #ff6a00);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px rgba(255, 106, 0, 0.7);
+      cursor: move;
+      touch-action: none;
+    }
+    
     /* Responsive adjustments */
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
       .game-wrapper {
-        max-width: 90vmin;
-        max-height: 90vmin;
+        max-width: 95vmin;
+        max-height: 95vmin;
       }
       .score-panel, .level-indicator {
         font-size: 14px;
@@ -271,18 +289,33 @@
       .controls {
         display: none;
       }
-      body {
-        cursor: auto;
+      .joystick-container {
+        width: 120px;
+        height: 120px;
       }
-      .custom-cursor {
-        display: none;
+      .joystick-handle {
+        width: 50px;
+        height: 50px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .game-wrapper {
+        max-width: 90vmin;
+        max-height: 90vmin;
+      }
+      .joystick-container {
+        width: 100px;
+        height: 100px;
+      }
+      .joystick-handle {
+        width: 40px;
+        height: 40px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="custom-cursor" id="customCursor"></div>
-
   <div class="game-wrapper">
     <div class="container" id="gameArea">
       <div class="score-panel">Score: <span id="scoreValue">0</span></div>
@@ -293,13 +326,18 @@
       </div>
       <div class="combo-counter" id="comboCounter">Combo: 0x</div>
       <div class="player" id="player"></div>
-      <div class="controls">Drag the player with your mouse</div>
+      <div class="controls">Use the joystick below to move</div>
       <div class="game-over" id="gameOver">
         GAME OVER
         <div class="final-score">Final Score: <span id="finalScore">0</span></div>
         <button onclick="restartGame()">Play Again</button>
       </div>
     </div>
+  </div>
+  
+  <div class="joystick-container">
+    <div class="joystick-bg"></div>
+    <div class="joystick-handle" id="joystickHandle"></div>
   </div>
 
   <script>
@@ -312,12 +350,13 @@
     const shieldIndicator = document.getElementById("shieldIndicator");
     const speedIndicator = document.getElementById("speedIndicator");
     const comboCounter = document.getElementById("comboCounter");
-    const customCursor = document.getElementById("customCursor");
+    const joystickHandle = document.getElementById("joystickHandle");
+    const joystickContainer = document.querySelector(".joystick-container");
 
     // Get container dimensions
     const containerSize = Math.min(gameArea.offsetWidth, gameArea.offsetHeight);
     const playerSize = containerSize * 0.08; // 8% of container size
-
+    
     let score = 0;
     let level = 1;
     let gameRunning = true;
@@ -333,7 +372,14 @@
     let combo = 0;
     let comboTimeout;
     let specialEnemyChance = 0.1; // 10% chance for special enemy
-    let isDragging = false;
+    
+    // Joystick variables
+    let joystickActive = false;
+    let joystickCenterX = 0;
+    let joystickCenterY = 0;
+    let joystickRadius = 0;
+    let joystickX = 0;
+    let joystickY = 0;
 
     // Set player size
     player.style.width = playerSize + "px";
@@ -349,95 +395,107 @@
     player.style.top = playerPos.top + "px";
     player.style.left = playerPos.left + "px";
 
-    // Mouse movement handling
-    function setupMouseControls() {
-      // Show custom cursor
-      document.addEventListener('mousemove', (e) => {
-        customCursor.style.display = 'block';
-        customCursor.style.left = e.clientX + 'px';
-        customCursor.style.top = e.clientY + 'px';
+    // Setup joystick
+    function setupJoystick() {
+      const rect = joystickContainer.getBoundingClientRect();
+      joystickCenterX = rect.width / 2;
+      joystickCenterY = rect.height / 2;
+      joystickRadius = rect.width / 2 - 30; // Radius with some padding
+      
+      // Mouse events
+      joystickHandle.addEventListener('mousedown', (e) => {
+        joystickActive = true;
+        document.addEventListener('mousemove', moveJoystick);
+        document.addEventListener('mouseup', releaseJoystick);
+        e.preventDefault();
       });
-
-      // Mouse down on player
-      player.addEventListener('mousedown', (e) => {
-        if (!gameRunning) return;
-        isDragging = true;
-        player.style.cursor = 'grabbing';
-        e.preventDefault(); // Prevent text selection
+      
+      // Touch events
+      joystickHandle.addEventListener('touchstart', (e) => {
+        joystickActive = true;
+        document.addEventListener('touchmove', moveJoystick);
+        document.addEventListener('touchend', releaseJoystick);
+        e.preventDefault();
       });
-
-      // Mouse move in game area
-      gameArea.addEventListener('mousemove', (e) => {
-        if (!isDragging || !gameRunning) return;
-
-        const rect = gameArea.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Calculate new position (center player on cursor)
-        let newLeft = x - playerSize / 2;
-        let newTop = y - playerSize / 2;
-
-        // Constrain to game area boundaries
-        newLeft = Math.max(0, Math.min(containerSize - playerSize, newLeft));
-        newTop = Math.max(0, Math.min(containerSize - playerSize, newTop));
-
-        // Update player position
-        playerPos.left = newLeft;
-        playerPos.top = newTop;
-
-        player.style.left = playerPos.left + "px";
-        player.style.top = playerPos.top + "px";
-
-        // Create movement particles
+    }
+    
+    // Move joystick
+    function moveJoystick(e) {
+      if (!joystickActive || !gameRunning) return;
+      
+      let clientX, clientY;
+      
+      if (e.type === 'mousemove') {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      } else if (e.type === 'touchmove') {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      }
+      
+      const rect = joystickContainer.getBoundingClientRect();
+      const x = clientX - rect.left - joystickCenterX;
+      const y = clientY - rect.top - joystickCenterY;
+      
+      // Calculate distance from center
+      const distance = Math.sqrt(x * x + y * y);
+      
+      // Normalize and limit to joystick radius
+      if (distance > joystickRadius) {
+        joystickX = (x / distance) * joystickRadius;
+        joystickY = (y / distance) * joystickRadius;
+      } else {
+        joystickX = x;
+        joystickY = y;
+      }
+      
+      // Update joystick handle position
+      joystickHandle.style.transform = `translate(${joystickX}px, ${joystickY}px)`;
+      
+      // Move player based on joystick position
+      movePlayer();
+    }
+    
+    // Release joystick
+    function releaseJoystick() {
+      joystickActive = false;
+      joystickX = 0;
+      joystickY = 0;
+      joystickHandle.style.transform = 'translate(-50%, -50%)';
+      document.removeEventListener('mousemove', moveJoystick);
+      document.removeEventListener('mouseup', releaseJoystick);
+      document.removeEventListener('touchmove', moveJoystick);
+      document.removeEventListener('touchend', releaseJoystick);
+    }
+    
+    // Move player based on joystick input
+    function movePlayer() {
+      if (!gameRunning) return;
+      
+      // Calculate movement speed based on joystick position
+      const speedMultiplier = speedBoostActive ? 1.5 : 1;
+      const moveX = (joystickX / joystickRadius) * containerSize * 0.02 * speedMultiplier;
+      const moveY = (joystickY / joystickRadius) * containerSize * 0.02 * speedMultiplier;
+      
+      // Calculate new position
+      let newLeft = playerPos.left + moveX;
+      let newTop = playerPos.top + moveY;
+      
+      // Constrain to game area boundaries
+      newLeft = Math.max(0, Math.min(containerSize - playerSize, newLeft));
+      newTop = Math.max(0, Math.min(containerSize - playerSize, newTop));
+      
+      // Update player position
+      playerPos.left = newLeft;
+      playerPos.top = newTop;
+      
+      player.style.left = playerPos.left + "px";
+      player.style.top = playerPos.top + "px";
+      
+      // Create movement particles occasionally
+      if (Math.random() < 0.3) {
         createParticles(playerPos.left + playerSize/2, playerPos.top + playerSize/2);
-      });
-
-      // Mouse up anywhere
-      document.addEventListener('mouseup', () => {
-        isDragging = false;
-        player.style.cursor = 'grab';
-      });
-
-      // Touch support for mobile
-      player.addEventListener('touchstart', (e) => {
-        if (!gameRunning) return;
-        isDragging = true;
-        e.preventDefault(); // Prevent scrolling
-      });
-
-      gameArea.addEventListener('touchmove', (e) => {
-        if (!isDragging || !gameRunning) return;
-
-        const touch = e.touches[0];
-        const rect = gameArea.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        // Calculate new position (center player on touch)
-        let newLeft = x - playerSize / 2;
-        let newTop = y - playerSize / 2;
-
-        // Constrain to game area boundaries
-        newLeft = Math.max(0, Math.min(containerSize - playerSize, newLeft));
-        newTop = Math.max(0, Math.min(containerSize - playerSize, newTop));
-
-        // Update player position
-        playerPos.left = newLeft;
-        playerPos.top = newTop;
-
-        player.style.left = playerPos.left + "px";
-        player.style.top = playerPos.top + "px";
-
-        // Create movement particles
-        createParticles(playerPos.left + playerSize/2, playerPos.top + playerSize/2);
-
-        e.preventDefault(); // Prevent scrolling
-      });
-
-      document.addEventListener('touchend', () => {
-        isDragging = false;
-      });
+      }
     }
 
     // Spawn new enemy
@@ -458,7 +516,7 @@
       } else {
         enemy.style.background = getRandomEnemyAppearance();
       }
-
+      
       enemy.style.boxShadow = `0 0 15px ${getRandomColor()}`;
 
       // Start from outside the container
@@ -516,25 +574,25 @@
     function spawnPowerUp() {
       const powerUp = document.createElement("div");
       powerUp.classList.add("power-up");
-
+      
       const types = ["shield", "speed", "points"];
       const type = types[Math.floor(Math.random() * types.length)];
       powerUp.classList.add(type);
-
+      
       const size = playerSize * 0.6; // 60% of player size
       powerUp.style.width = size + "px";
       powerUp.style.height = size + "px";
-
+      
       powerUp.style.top = (Math.random() * (containerSize - 100) + 50) + "px";
       powerUp.style.left = (Math.random() * (containerSize - 100) + 50) + "px";
-
+      
       gameArea.appendChild(powerUp);
-
+      
       powerUps.push({
         el: powerUp,
-        pos: {
-          top: parseInt(powerUp.style.top),
-          left: parseInt(powerUp.style.left)
+        pos: { 
+          top: parseInt(powerUp.style.top), 
+          left: parseInt(powerUp.style.left) 
         },
         type,
         size
@@ -569,22 +627,22 @@
     function checkPowerUps() {
       for (let i = powerUps.length - 1; i >= 0; i--) {
         let powerUp = powerUps[i];
-
+        
         const playerCenter = {
           x: playerPos.left + playerSize/2,
           y: playerPos.top + playerSize/2
         };
-
+        
         const powerUpCenter = {
           x: powerUp.pos.left + powerUp.size/2,
           y: powerUp.pos.top + powerUp.size/2
         };
-
+        
         // Calculate distance between centers
         const dx = playerCenter.x - powerUpCenter.x;
         const dy = playerCenter.y - powerUpCenter.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-
+        
         // Check if player collected power-up
         if (distance < (playerSize/2 + powerUp.size/2)) {
           gameArea.removeChild(powerUp.el);
@@ -739,7 +797,7 @@
         case "speed": color = "#00ff00"; break;
         case "points": color = "#ffff00"; break;
       }
-
+      
       for (let i = 0; i < 15; i++) {
         const particle = document.createElement("div");
         particle.classList.add("particle");
@@ -816,15 +874,15 @@
     // Score update + difficulty scaling
     function updateScore() {
       if (!gameRunning) return;
-
+      
       // Increase combo for survival
       combo++;
       clearTimeout(comboTimeout);
-
+      
       if (combo > 10) {
         comboCounter.style.display = "block";
         comboCounter.textContent = `Combo: ${combo}x`;
-
+        
         // Score increases with combo
         const pointsEarned = 1 + Math.floor(combo / 10);
         score += pointsEarned;
@@ -832,12 +890,12 @@
         comboCounter.style.display = "none";
         score++;
       }
-
+      
       comboTimeout = setTimeout(() => {
         combo = 0;
         comboCounter.style.display = "none";
       }, 2000);
-
+      
       scoreValue.textContent = score;
 
       // Level progression
@@ -894,13 +952,18 @@
 
     // Initialize the game
     function init() {
-      setupMouseControls();
-
+      setupJoystick();
+      
       // Game loop
       setInterval(() => {
         if (gameRunning) {
           moveEnemies();
           checkPowerUps();
+          
+          // Continuously move player if joystick is active
+          if (joystickActive) {
+            movePlayer();
+          }
         }
       }, 20);
 
@@ -908,7 +971,7 @@
 
       // Start enemy spawning
       enemySpawnInterval = setInterval(spawnEnemy, enemySpawnRate);
-
+      
       // Start power-up spawning
       powerUpSpawnInterval = setInterval(spawnPowerUp, powerUpSpawnRate);
 
