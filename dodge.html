@@ -1,988 +1,1157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Joystick-Controlled Dodge Game</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
-      padding: 20px;
-    }
-    .game-wrapper {
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      border-radius: 20px;
-      overflow: hidden;
-      width: 100%;
-      max-width: 700px;
-      aspect-ratio: 1/1;
-      margin-bottom: 30px;
-    }
-    .container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, #4e54c8, #8f94fb);
-      overflow: hidden;
-    }
-    .player {
-      position: absolute;
-      background: linear-gradient(45deg, #ff9a00, #ff6a00);
-      border-radius: 50%;
-      box-shadow: 0 0 15px rgba(255, 106, 0, 0.7);
-      transition: transform 0.1s;
-      z-index: 10;
-    }
-    .player.shielded {
-      box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, inset 0 0 20px rgba(0, 255, 255, 0.5);
-    }
-    .player.speed-boost {
-      box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00, inset 0 0 20px rgba(0, 255, 0, 0.5);
-    }
-    .player:hover {
-      transform: scale(1.1);
-    }
-    .enemy {
-      position: absolute;
-      border-radius: 50%;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      transition: transform 0.2s;
-    }
-    .enemy.special {
-      animation: pulse 1s infinite alternate;
-      box-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
-    }
-    .enemy:hover {
-      transform: scale(1.1);
-    }
-    .power-up {
-      position: absolute;
-      border-radius: 50%;
-      animation: float 3s infinite ease-in-out;
-      z-index: 5;
-    }
-    .power-up.shield {
-      background: radial-gradient(circle at 30% 30%, #00ffff, #0088ff);
-      box-shadow: 0 0 10px #00ffff, 0 0 15px #00ffff;
-    }
-    .power-up.speed {
-      background: radial-gradient(circle at 30% 30%, #00ff00, #00aa00);
-      box-shadow: 0 0 10px #00ff00, 0 0 15px #00ff00;
-    }
-    .power-up.points {
-      background: radial-gradient(circle at 30% 30%, #ffff00, #ffaa00);
-      box-shadow: 0 0 10px #ffff00, 0 0 15px #ffff00;
-    }
-    .score-panel {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-weight: bold;
-      font-size: 16px;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 12px;
-      border-radius: 10px;
-      z-index: 5;
-    }
-    .controls {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      color: white;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 12px;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-      z-index: 5;
-    }
-    .game-over {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      display: none;
-      z-index: 20;
-      border-radius: 20px;
-      padding: 20px;
-    }
-    .final-score {
-      font-size: 20px;
-      margin: 15px 0;
-      color: #ff6a00;
-    }
-    .power-up-indicators {
-      position: absolute;
-      top: 10px;
-      right: 70px;
-      display: flex;
-      gap: 8px;
-    }
-    .power-up-indicator {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      opacity: 0.3;
-      transition: opacity 0.3s;
-    }
-    .power-up-indicator.active {
-      opacity: 1;
-    }
-    .power-up-indicator.shield {
-      background: #00ffff;
-      box-shadow: 0 0 5px #00ffff;
-    }
-    .power-up-indicator.speed {
-      background: #00ff00;
-      box-shadow: 0 0 5px #00ff00;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(to right, #ff9a00, #ff6a00);
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: all 0.3s;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-    }
-    button:active {
-      transform: translateY(1px);
-    }
-    .particle {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .level-indicator {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-weight: bold;
-      font-size: 16px;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 12px;
-      border-radius: 10px;
-      z-index: 5;
-    }
-    .combo-counter {
-      position: absolute;
-      top: 50px;
-      left: 10px;
-      font-weight: bold;
-      font-size: 14px;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3);
-      padding: 5px 10px;
-      border-radius: 10px;
-      z-index: 5;
-      display: none;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    @keyframes float {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-      100% { transform: translateY(0px); }
-    }
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: translateX(0); }
-    }
-    .container {
-      animation: pulse 3s infinite ease-in-out;
-    }
-    .shake {
-      animation: shake 0.5s;
-    }
-    
-    /* Joystick container */
-    .joystick-container {
-      position: relative;
-      width: 150px;
-      height: 150px;
-      margin-top: 20px;
-    }
-    
-    /* Joystick background */
-    .joystick-bg {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    }
-    
-    /* Joystick handle */
-    .joystick-handle {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(to right, #ff9a00, #ff6a00);
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 10px rgba(255, 106, 0, 0.7);
-      cursor: move;
-      touch-action: none;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .game-wrapper {
-        max-width: 95vmin;
-        max-height: 95vmin;
-      }
-      .score-panel, .level-indicator {
-        font-size: 14px;
-        padding: 6px 10px;
-      }
-      .power-up-indicators {
-        right: 60px;
-      }
-      .controls {
-        display: none;
-      }
-      .joystick-container {
-        width: 120px;
-        height: 120px;
-      }
-      .joystick-handle {
-        width: 50px;
-        height: 50px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .game-wrapper {
-        max-width: 90vmin;
-        max-height: 90vmin;
-      }
-      .joystick-container {
-        width: 100px;
-        height: 100px;
-      }
-      .joystick-handle {
-        width: 40px;
-        height: 40px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice of Change | Premium Student Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8a85ff;
+            --primary-dark: #6c67e3;
+            --secondary: #ff7d50;
+            --accent: #00d4aa;
+            --dark-bg: #0f0f1e;
+            --dark-card: #1a1a2e;
+            --dark-card-hover: #202040;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0b0;
+            --glass-bg: rgba(30, 30, 50, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --success: #00c781;
+            --gradient-start: #8a85ff;
+            --gradient-end: #6a67e3;
+            --gradient-accent: linear-gradient(135deg, var(--accent) 0%, #00b894 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            --card-shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #151528 100%);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.2rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text {
+            font-family: 'Merriweather', serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        nav ul li a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        nav ul li a:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover:after {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            width: 50px;
+            height: 26px;
+            border-radius: 50px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0 3px;
+        }
+
+        .theme-toggle i {
+            font-size: 14px;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .theme-toggle .fa-sun {
+            color: #f59e0b;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .theme-toggle .fa-moon {
+            color: #d1d5db;
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            background: var(--primary);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            left: 27px;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 0 6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><circle cx="50" cy="50" r="40" fill="%238a85ff" /></svg>');
+            background-size: 300px;
+        }
+
+        .hero-title {
+            font-family: 'Merriweather', serif;
+            font-size: 3.8rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 2.5rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.1rem 2.2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(138, 133, 255, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-dark), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(138, 133, 255, 0.35);
+        }
+
+        .cta-button:hover:before {
+            opacity: 1;
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            box-shadow: none;
+        }
+
+        .cta-button.secondary:before {
+            background: var(--primary);
+        }
+
+        .cta-button.secondary:hover {
+            color: white;
+        }
+
+        .stats {
+            display: flex;
+            gap: 4rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Freedom Banner */
+        .freedom-banner {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            color: white;
+            text-align: center;
+            padding: 4rem 3rem;
+            border-radius: 24px;
+            margin: 6rem 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(138, 133, 255, 0.25);
+        }
+
+        .freedom-banner h2 {
+            font-family: 'Merriweather', serif;
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+            font-weight: 800;
+        }
+
+        .freedom-banner p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .banner-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><path d="M20,20 L80,20 L80,80 L20,80 Z" fill="white" /></svg>');
+            background-size: 200px;
+        }
+
+        /* Section Styles */
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-family: 'Merriweather', serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            margin: 1.5rem auto;
+            border-radius: 2px;
+        }
+
+        section {
+            padding: 6rem 0;
+        }
+
+        /* Enhanced Cards */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--dark-card);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s ease;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: var(--card-shadow-hover);
+            background: var(--dark-card-hover);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            z-index: 2;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.8rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .card:hover .card-header::after {
+            left: 100%;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        .card-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--primary), transparent);
+        }
+
+        .card-highlight {
+            background: linear-gradient(135deg, rgba(138, 133, 255, 0.1) 0%, rgba(0, 212, 170, 0.1) 100%);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 1.5rem 0;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1.2rem;
+            border: 1px solid #2a2a40;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: rgba(20, 20, 35, 0.6);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(138, 133, 255, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 180px;
+            resize: vertical;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a85ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 1.2rem 2.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-dark), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(138, 133, 255, 0.3);
+        }
+
+        .btn:hover:before {
+            opacity: 1;
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        /* Anonymous Section */
+        .anonymous-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            border-radius: 24px;
+            margin-bottom: 4rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* Success Stories */
+        .success-story {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(20, 20, 35, 0.4);
+            border-radius: 16px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .success-story:hover {
+            transform: translateX(5px);
+            background: rgba(20, 20, 35, 0.6);
+        }
+
+        .success-story h4 {
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-story p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .success-story .author {
+            font-style: italic;
+            margin-top: 0.8rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Votes */
+        .votes {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .votes .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Icon Wrappers */
+        .icon-wrapper {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 5px 15px rgba(138, 133, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover .icon-wrapper {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 25px rgba(138, 133, 255, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #0a0a1a 0%, #131325 100%);
+            color: white;
+            padding: 5rem 0 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-section p {
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+            line-height: 1.6;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section ul li a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-section ul li a:hover {
+            opacity: 1;
+            padding-left: 5px;
+            color: var(--primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            nav ul {
+                gap: 1.5rem;
+            }
+            
+            .stats {
+                gap: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1.2rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .stats {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2rem;
+            }
+            
+            .card-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .freedom-banner h2 {
+                font-size: 2.2rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2rem;
+            }
+            
+            .freedom-banner {
+                padding: 2.5rem 1.5rem;
+            }
+            
+            .freedom-banner h2 {
+                font-size: 1.8rem;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .anonymous-section {
+                padding: 2rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .floating {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
 </head>
 <body>
-  <div class="game-wrapper">
-    <div class="container" id="gameArea">
-      <div class="score-panel">Score: <span id="scoreValue">0</span></div>
-      <div class="level-indicator">Level: <span id="levelValue">1</span></div>
-      <div class="power-up-indicators">
-        <div class="power-up-indicator shield" id="shieldIndicator"></div>
-        <div class="power-up-indicator speed" id="speedIndicator"></div>
-      </div>
-      <div class="combo-counter" id="comboCounter">Combo: 0x</div>
-      <div class="player" id="player"></div>
-      <div class="controls">Use the joystick below to move</div>
-      <div class="game-over" id="gameOver">
-        GAME OVER
-        <div class="final-score">Final Score: <span id="finalScore">0</span></div>
-        <button onclick="restartGame()">Play Again</button>
-      </div>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-microphone-alt"></i></div>
+                    <div class="logo-text">Voice of Change</div>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#mental-health">Mental Health</a></li>
+                        <li><a href="#success">Success</a></li>
+                        <li><a href="#suggestions">Suggestions</a></li>
+                        <li><a href="#report">Report</a></li>
+                    </ul>
+                </nav>
+                <div class="nav-buttons">
+                    <div class="theme-toggle" id="theme-toggle">
+                        <i class="fas fa-sun"></i>
+                        <i class="fas fa-moon"></i>
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1 class="hero-title">Pioneers of change</h1>
+                <p class="hero-subtitle">A premium platform for students of our Rophine Field international school to express themselves, share ideas, and drive positive change in our community.</p>
+                <div class="cta-buttons">
+                    <a href="#suggestions" class="cta-button"><i class="fas fa-lightbulb"></i> <span>Share Your Ideas</span></a>
+                    <a href="#report" class="cta-button secondary"><i class="fas fa-shield-alt"></i> <span>Anonymous Reporting</span></a>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number">2,483</div>
+                        <div class="stat-label">Students Empowered</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">427</div>
+                        <div class="stat-label">Positive Changes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label">Satisfaction Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Freedom Banner -->
+    <div class="container">
+        <div class="freedom-banner fade-in">
+            <div class="banner-bg"></div>
+            <h2>Freedom Is Coming Tomorrow</h2>
+            <p>Your voice today creates a better tomorrow for everyone in our school community. Together, we're building an environment where every student can thrive.</p>
+        </div>
     </div>
-  </div>
-  
-  <div class="joystick-container">
-    <div class="joystick-bg"></div>
-    <div class="joystick-handle" id="joystickHandle"></div>
-  </div>
 
-  <script>
-    const gameArea = document.getElementById("gameArea");
-    const player = document.getElementById("player");
-    const scoreValue = document.getElementById("scoreValue");
-    const levelValue = document.getElementById("levelValue");
-    const gameOverScreen = document.getElementById("gameOver");
-    const finalScore = document.getElementById("finalScore");
-    const shieldIndicator = document.getElementById("shieldIndicator");
-    const speedIndicator = document.getElementById("speedIndicator");
-    const comboCounter = document.getElementById("comboCounter");
-    const joystickHandle = document.getElementById("joystickHandle");
-    const joystickContainer = document.querySelector(".joystick-container");
+    <!-- Mental Health Section -->
+    <section id="mental-health">
+        <div class="container">
+            <div class="section-title fade-in">
+                <h2>Mental Health & Well-being</h2>
+                <p>Your mental health is important. Share your experiences, find resources, and support each other.</p>
+            </div>
+            
+            <div class="card-container">
+                <div class="card floating fade-in">
+                    <div class="card-header">
+                        <h3><i class="fas fa-heart"></i> Share Your Story</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <p>Sharing your experiences can help others feel less alone. You can choose to remain anonymous.</p>
+                        <div class="form-group">
+                            <label for="mental-health-story">Your Story</label>
+                            <textarea class="form-control" id="mental-health-story" placeholder="Share your experiences or challenges..."></textarea>
+                        </div>
+                        <button class="btn btn-block"><i class="fas fa-paper-plane"></i> <span>Submit Anonymously</span></button>
+                    </div>
+                </div>
+                
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h3><i class="fas fa-hands-helping"></i> Resources & Support</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-life-ring"></i>
+                        </div>
+                        <p>If you're struggling, remember that help is available. Here are some resources:</p>
+                        <div class="card-highlight">
+                            <ul>
+                                <li><i class="fas fa-user-graduate"></i> School Counselor: Room 204, available 8am-4pm</li>
+                                <li><i class="fas fa-comment"></i> Crisis Text Line: Text HOME to 741741</li>
+                                <li><i class="fas fa-phone"></i> National Suicide Prevention Lifeline: 1-800-273-8255</li>
+                                <li><i class="fas fa-globe"></i> International Support: Check our portal for country-specific resources</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h3><i class="fas fa-seedling"></i> Wellness Tips</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <p>Small practices for better mental health:</p>
+                        <div class="card-highlight">
+                            <ul>
+                                <li><i class="fas fa-clock"></i> Take regular breaks from studying</li>
+                                <li><i class="fas fa-wind"></i> Practice deep breathing exercises</li>
+                                <li><i class="fas fa-users"></i> Connect with friends and family</li>
+                                <li><i class="fas fa-bed"></i> Get enough sleep and exercise</li>
+                                <li><i class="fas fa-mobile-alt"></i> Limit social media consumption</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    // Get container dimensions
-    const containerSize = Math.min(gameArea.offsetWidth, gameArea.offsetHeight);
-    const playerSize = containerSize * 0.08; // 8% of container size
-    
-    let score = 0;
-    let level = 1;
-    let gameRunning = true;
-    let enemies = [];
-    let powerUps = [];
-    let enemySpeed = containerSize * 0.003; // Relative to container size
-    let enemySpawnRate = 1500; // milliseconds
-    let powerUpSpawnRate = 10000; // milliseconds
-    let enemySpawnInterval;
-    let powerUpSpawnInterval;
-    let hasShield = false;
-    let speedBoostActive = false;
-    let combo = 0;
-    let comboTimeout;
-    let specialEnemyChance = 0.1; // 10% chance for special enemy
-    
-    // Joystick variables
-    let joystickActive = false;
-    let joystickCenterX = 0;
-    let joystickCenterY = 0;
-    let joystickRadius = 0;
-    let joystickX = 0;
-    let joystickY = 0;
+    <!-- Success Stories Section -->
+    <section id="success" style="background: linear-gradient(135deg, #131325 0%, #17172e 100%);">
+        <div class="container">
+            <div class="section-title fade-in">
+                <h2>Success Stories</h2>
+                <p>Celebrating achievements and sharing strategies for success in our international community.</p>
+            </div>
+            
+            <div class="card-container">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h3><i class="fas fa-trophy"></i> Share Your Success</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <div class="form-group">
+                            <label for="success-title">Title</label>
+                            <input type="text" class="form-control" id="success-title" placeholder="What did you achieve?">
+                        </div>
+                        <div class="form-group">
+                            <label for="success-story">Your Story</label>
+                            <textarea class="form-control" id="success-story" placeholder="How did you achieve it? What helped you succeed?"></textarea>
+                        </div>
+                        <button class="btn btn-block"><i class="fas fa-share"></i> <span>Share Your Success</span></button>
+                    </div>
+                </div>
+                
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h3><i class="fas fa-star"></i> Recent Success Stories</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="success-story">
+                            <h4><i class="fas fa-graduation-cap"></i> Overcame Math Anxiety</h4>
+                            <p>"I used to struggle with math, but after getting a tutor and practicing regularly, I improved my grade from a C to an A!"</p>
+                            <p class="author">- Anonymous, Grade 10</p>
+                        </div>
+                        <div class="success-story">
+                            <h4><i class="fas fa-balance-scale"></i> Balanced Sports and Studies</h4>
+                            <p>"As a student athlete, I learned time management skills that helped me excel both on the field and in the classroom."</p>
+                            <p class="author">- Anonymous, Grade 12</p>
+                        </div>
+                        <div class="success-story">
+                            <h4><i class="fas fa-language"></i> Mastered a New Language</h4>
+                            <p>"When I first arrived, I struggled with English. Through consistent practice and help from teachers, I'm now fluent!"</p>
+                            <p class="author">- International Student</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    // Set player size
-    player.style.width = playerSize + "px";
-    player.style.height = playerSize + "px";
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Voice of Change</h3>
+                    <p>A premium platform for students of our Rophine Field  international school to express themselves and work toward positive change in our community.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#mental-health"><i class="fas fa-heart"></i> Mental Health Resources</a></li>
+                        <li><a href="#success"><i class="fas fa-trophy"></i> Success Stories</a></li>
+                        <li><a href="#suggestions"><i class="fas fa-lightbulb"></i> Make a Suggestion</a></li>
+                        <li><a href="#report"><i class="fas fa-shield-alt"></i> Anonymous Reporting</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Rophine Field International School</p>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> studentaffairs@rophinefieldinternationalschool.edu</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Voice of Change - Rophine Field International Student Expression Platform | Remember: Freedom Is Coming Tomorrow | BlackCodeLabs</p>
+            </div>
+        </div>
+    </footer>
 
-    // Player position (start in center)
-    let playerPos = {
-      top: (containerSize - playerSize) / 2,
-      left: (containerSize - playerSize) / 2
-    };
-
-    // Initialize player position
-    player.style.top = playerPos.top + "px";
-    player.style.left = playerPos.left + "px";
-
-    // Setup joystick
-    function setupJoystick() {
-      const rect = joystickContainer.getBoundingClientRect();
-      joystickCenterX = rect.width / 2;
-      joystickCenterY = rect.height / 2;
-      joystickRadius = rect.width / 2 - 30; // Radius with some padding
-      
-      // Mouse events
-      joystickHandle.addEventListener('mousedown', (e) => {
-        joystickActive = true;
-        document.addEventListener('mousemove', moveJoystick);
-        document.addEventListener('mouseup', releaseJoystick);
-        e.preventDefault();
-      });
-      
-      // Touch events
-      joystickHandle.addEventListener('touchstart', (e) => {
-        joystickActive = true;
-        document.addEventListener('touchmove', moveJoystick);
-        document.addEventListener('touchend', releaseJoystick);
-        e.preventDefault();
-      });
-    }
-    
-    // Move joystick
-    function moveJoystick(e) {
-      if (!joystickActive || !gameRunning) return;
-      
-      let clientX, clientY;
-      
-      if (e.type === 'mousemove') {
-        clientX = e.clientX;
-        clientY = e.clientY;
-      } else if (e.type === 'touchmove') {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      }
-      
-      const rect = joystickContainer.getBoundingClientRect();
-      const x = clientX - rect.left - joystickCenterX;
-      const y = clientY - rect.top - joystickCenterY;
-      
-      // Calculate distance from center
-      const distance = Math.sqrt(x * x + y * y);
-      
-      // Normalize and limit to joystick radius
-      if (distance > joystickRadius) {
-        joystickX = (x / distance) * joystickRadius;
-        joystickY = (y / distance) * joystickRadius;
-      } else {
-        joystickX = x;
-        joystickY = y;
-      }
-      
-      // Update joystick handle position
-      joystickHandle.style.transform = `translate(${joystickX}px, ${joystickY}px)`;
-      
-      // Move player based on joystick position
-      movePlayer();
-    }
-    
-    // Release joystick
-    function releaseJoystick() {
-      joystickActive = false;
-      joystickX = 0;
-      joystickY = 0;
-      joystickHandle.style.transform = 'translate(-50%, -50%)';
-      document.removeEventListener('mousemove', moveJoystick);
-      document.removeEventListener('mouseup', releaseJoystick);
-      document.removeEventListener('touchmove', moveJoystick);
-      document.removeEventListener('touchend', releaseJoystick);
-    }
-    
-    // Move player based on joystick input
-    function movePlayer() {
-      if (!gameRunning) return;
-      
-      // Calculate movement speed based on joystick position
-      const speedMultiplier = speedBoostActive ? 1.5 : 1;
-      const moveX = (joystickX / joystickRadius) * containerSize * 0.02 * speedMultiplier;
-      const moveY = (joystickY / joystickRadius) * containerSize * 0.02 * speedMultiplier;
-      
-      // Calculate new position
-      let newLeft = playerPos.left + moveX;
-      let newTop = playerPos.top + moveY;
-      
-      // Constrain to game area boundaries
-      newLeft = Math.max(0, Math.min(containerSize - playerSize, newLeft));
-      newTop = Math.max(0, Math.min(containerSize - playerSize, newTop));
-      
-      // Update player position
-      playerPos.left = newLeft;
-      playerPos.top = newTop;
-      
-      player.style.left = playerPos.left + "px";
-      player.style.top = playerPos.top + "px";
-      
-      // Create movement particles occasionally
-      if (Math.random() < 0.3) {
-        createParticles(playerPos.left + playerSize/2, playerPos.top + playerSize/2);
-      }
-    }
-
-    // Spawn new enemy
-    function spawnEnemy() {
-      const enemy = document.createElement("div");
-      enemy.classList.add("enemy");
-
-      // Random enemy appearance
-      const size = Math.random() * (playerSize * 0.6) + (playerSize * 0.6); // 60%-120% of player size
-      enemy.style.width = size + "px";
-      enemy.style.height = size + "px";
-
-      // Chance for special enemy
-      const isSpecial = Math.random() < specialEnemyChance;
-      if (isSpecial) {
-        enemy.classList.add("special");
-        enemy.style.background = "radial-gradient(circle, #ff0000, #800000)";
-      } else {
-        enemy.style.background = getRandomEnemyAppearance();
-      }
-      
-      enemy.style.boxShadow = `0 0 15px ${getRandomColor()}`;
-
-      // Start from outside the container
-      const side = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
-      let startTop, startLeft;
-
-      switch(side) {
-        case 0: // top
-          startTop = -size;
-          startLeft = Math.random() * containerSize;
-          break;
-        case 1: // right
-          startTop = Math.random() * containerSize;
-          startLeft = containerSize;
-          break;
-        case 2: // bottom
-          startTop = containerSize;
-          startLeft = Math.random() * containerSize;
-          break;
-        case 3: // left
-          startTop = Math.random() * containerSize;
-          startLeft = -size;
-          break;
-      }
-
-      enemy.style.top = startTop + "px";
-      enemy.style.left = startLeft + "px";
-      gameArea.appendChild(enemy);
-
-      // Calculate direction toward player with some randomness
-      const targetX = playerPos.left + playerSize/2;
-      const targetY = playerPos.top + playerSize/2;
-      const startX = parseInt(enemy.style.left) + size/2;
-      const startY = parseInt(enemy.style.top) + size/2;
-
-      const angle = Math.atan2(targetY - startY, targetX - startX);
-      const randomAngle = (Math.random() - 0.5) * 0.4; // Add some randomness
-
-      const direction = {
-        x: Math.cos(angle + randomAngle),
-        y: Math.sin(angle + randomAngle)
-      };
-
-      enemies.push({
-        el: enemy,
-        pos: { top: startY - size/2, left: startX - size/2 },
-        direction,
-        size,
-        isSpecial,
-        speed: isSpecial ? enemySpeed * 1.5 : enemySpeed
-      });
-    }
-
-    // Spawn power-up
-    function spawnPowerUp() {
-      const powerUp = document.createElement("div");
-      powerUp.classList.add("power-up");
-      
-      const types = ["shield", "speed", "points"];
-      const type = types[Math.floor(Math.random() * types.length)];
-      powerUp.classList.add(type);
-      
-      const size = playerSize * 0.6; // 60% of player size
-      powerUp.style.width = size + "px";
-      powerUp.style.height = size + "px";
-      
-      powerUp.style.top = (Math.random() * (containerSize - 100) + 50) + "px";
-      powerUp.style.left = (Math.random() * (containerSize - 100) + 50) + "px";
-      
-      gameArea.appendChild(powerUp);
-      
-      powerUps.push({
-        el: powerUp,
-        pos: { 
-          top: parseInt(powerUp.style.top), 
-          left: parseInt(powerUp.style.left) 
-        },
-        type,
-        size
-      });
-    }
-
-    // Enemy movement
-    function moveEnemies() {
-      for (let i = enemies.length - 1; i >= 0; i--) {
-        let enemyObj = enemies[i];
-        let { el, pos, direction, size, speed } = enemyObj;
-
-        pos.top += direction.y * speed;
-        pos.left += direction.x * speed;
-
-        el.style.top = pos.top + "px";
-        el.style.left = pos.left + "px";
-
-        // Remove enemies that are far outside the container
-        if (pos.top < -100 || pos.top > containerSize + 100 ||
-            pos.left < -100 || pos.left > containerSize + 100) {
-          gameArea.removeChild(el);
-          enemies.splice(i, 1);
-          continue;
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            // Save theme preference to localStorage
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.remove('dark-mode');
         }
-
-        checkCollision(pos, size, enemyObj.isSpecial);
-      }
-    }
-
-    // Check power-up collection
-    function checkPowerUps() {
-      for (let i = powerUps.length - 1; i >= 0; i--) {
-        let powerUp = powerUps[i];
         
-        const playerCenter = {
-          x: playerPos.left + playerSize/2,
-          y: playerPos.top + playerSize/2
-        };
-        
-        const powerUpCenter = {
-          x: powerUp.pos.left + powerUp.size/2,
-          y: powerUp.pos.top + powerUp.size/2
-        };
-        
-        // Calculate distance between centers
-        const dx = playerCenter.x - powerUpCenter.x;
-        const dy = playerCenter.y - powerUpCenter.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Check if player collected power-up
-        if (distance < (playerSize/2 + powerUp.size/2)) {
-          gameArea.removeChild(powerUp.el);
-          powerUps.splice(i, 1);
-          applyPowerUp(powerUp.type);
-          createPowerUpEffect(playerCenter.x, playerCenter.y, powerUp.type);
-        }
-      }
-    }
-
-    // Apply power-up effect
-    function applyPowerUp(type) {
-      switch(type) {
-        case "shield":
-          hasShield = true;
-          player.classList.add("shielded");
-          shieldIndicator.classList.add("active");
-          setTimeout(() => {
-            hasShield = false;
-            player.classList.remove("shielded");
-            shieldIndicator.classList.remove("active");
-          }, 10000);
-          break;
-        case "speed":
-          speedBoostActive = true;
-          player.classList.add("speed-boost");
-          speedIndicator.classList.add("active");
-          setTimeout(() => {
-            speedBoostActive = false;
-            player.classList.remove("speed-boost");
-            speedIndicator.classList.remove("active");
-          }, 8000);
-          break;
-        case "points":
-          score += 500;
-          scoreValue.textContent = score;
-          break;
-      }
-    }
-
-    // Improved collision detection
-    function checkCollision(enemyPos, enemySize, isSpecial) {
-      const playerCenter = {
-        x: playerPos.left + playerSize/2,
-        y: playerPos.top + playerSize/2
-      };
-
-      const enemyCenter = {
-        x: enemyPos.left + enemySize/2,
-        y: enemyPos.top + enemySize/2
-      };
-
-      // Calculate distance between centers
-      const dx = playerCenter.x - enemyCenter.x;
-      const dy = playerCenter.y - enemyCenter.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      // Check if distance is less than sum of radii
-      if (distance < (playerSize/2 + enemySize/2)) {
-        if (hasShield) {
-          // Shield protects from one hit
-          hasShield = false;
-          player.classList.remove("shielded");
-          shieldIndicator.classList.remove("active");
-          createShieldBreakEffect(playerCenter.x, playerCenter.y);
-        } else {
-          createExplosion(playerCenter.x, playerCenter.y);
-          endGame();
-        }
-      }
-    }
-
-    // Create visual effects
-    function createParticles(x, y) {
-      for (let i = 0; i < 3; i++) {
-        const particle = document.createElement("div");
-        particle.classList.add("particle");
-
-        const size = Math.random() * 6 + 2;
-        particle.style.width = size + "px";
-        particle.style.height = size + "px";
-        particle.style.background = getRandomColor();
-        particle.style.left = (x - size/2) + "px";
-        particle.style.top = (y - size/2) + "px";
-
-        gameArea.appendChild(particle);
-
-        // Animate and remove particle
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 3 + 1;
-        let progress = 0;
-
-        const animateParticle = () => {
-          progress += 0.02;
-          if (progress >= 1) {
-            gameArea.removeChild(particle);
-            return;
-          }
-
-          particle.style.opacity = 1 - progress;
-          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 30) + "px";
-          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 30) + "px";
-
-          requestAnimationFrame(animateParticle);
-        };
-
-        requestAnimationFrame(animateParticle);
-      }
-    }
-
-    function createExplosion(x, y) {
-      for (let i = 0; i < 20; i++) {
-        const particle = document.createElement("div");
-        particle.classList.add("particle");
-
-        const size = Math.random() * 8 + 4;
-        particle.style.width = size + "px";
-        particle.style.height = size + "px";
-        particle.style.background = getRandomColor();
-        particle.style.left = (x - size/2) + "px";
-        particle.style.top = (y - size/2) + "px";
-
-        gameArea.appendChild(particle);
-
-        // Animate and remove particle
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5 + 2;
-        let progress = 0;
-
-        const animateParticle = () => {
-          progress += 0.02;
-          if (progress >= 1) {
-            gameArea.removeChild(particle);
-            return;
-          }
-
-          particle.style.opacity = 1 - progress;
-          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 50) + "px";
-          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 50) + "px";
-
-          requestAnimationFrame(animateParticle);
-        };
-
-        requestAnimationFrame(animateParticle);
-      }
-    }
-
-    function createPowerUpEffect(x, y, type) {
-      let color;
-      switch(type) {
-        case "shield": color = "#00ffff"; break;
-        case "speed": color = "#00ff00"; break;
-        case "points": color = "#ffff00"; break;
-      }
-      
-      for (let i = 0; i < 15; i++) {
-        const particle = document.createElement("div");
-        particle.classList.add("particle");
-
-        const size = Math.random() * 6 + 4;
-        particle.style.width = size + "px";
-        particle.style.height = size + "px";
-        particle.style.background = color;
-        particle.style.left = (x - size/2) + "px";
-        particle.style.top = (y - size/2) + "px";
-
-        gameArea.appendChild(particle);
-
-        // Animate and remove particle
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4 + 2;
-        let progress = 0;
-
-        const animateParticle = () => {
-          progress += 0.02;
-          if (progress >= 1) {
-            gameArea.removeChild(particle);
-            return;
-          }
-
-          particle.style.opacity = 1 - progress;
-          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 40) + "px";
-          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 40) + "px";
-
-          requestAnimationFrame(animateParticle);
-        };
-
-        requestAnimationFrame(animateParticle);
-      }
-    }
-
-    function createShieldBreakEffect(x, y) {
-      for (let i = 0; i < 30; i++) {
-        const particle = document.createElement("div");
-        particle.classList.add("particle");
-
-        const size = Math.random() * 6 + 2;
-        particle.style.width = size + "px";
-        particle.style.height = size + "px";
-        particle.style.background = "#00ffff";
-        particle.style.left = (x - size/2) + "px";
-        particle.style.top = (y - size/2) + "px";
-
-        gameArea.appendChild(particle);
-
-        // Animate and remove particle
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 5 + 3;
-        let progress = 0;
-
-        const animateParticle = () => {
-          progress += 0.02;
-          if (progress >= 1) {
-            gameArea.removeChild(particle);
-            return;
-          }
-
-          particle.style.opacity = 1 - progress;
-          particle.style.left = (x - size/2 + Math.cos(angle) * speed * progress * 60) + "px";
-          particle.style.top = (y - size/2 + Math.sin(angle) * speed * progress * 60) + "px";
-
-          requestAnimationFrame(animateParticle);
-        };
-
-        requestAnimationFrame(animateParticle);
-      }
-    }
-
-    // Score update + difficulty scaling
-    function updateScore() {
-      if (!gameRunning) return;
-      
-      // Increase combo for survival
-      combo++;
-      clearTimeout(comboTimeout);
-      
-      if (combo > 10) {
-        comboCounter.style.display = "block";
-        comboCounter.textContent = `Combo: ${combo}x`;
-        
-        // Score increases with combo
-        const pointsEarned = 1 + Math.floor(combo / 10);
-        score += pointsEarned;
-      } else {
-        comboCounter.style.display = "none";
-        score++;
-      }
-      
-      comboTimeout = setTimeout(() => {
-        combo = 0;
-        comboCounter.style.display = "none";
-      }, 2000);
-      
-      scoreValue.textContent = score;
-
-      // Level progression
-      const newLevel = Math.floor(score / 20) + 1;
-      if (newLevel > level) {
-        level = newLevel;
-        levelValue.textContent = level;
-
-        // Increase difficulty
-        enemySpeed = containerSize * (0.003 + (level * 0.0005));
-        enemySpawnRate = Math.max(500, 1500 - (level * 100));
-        specialEnemyChance = Math.min(0.3, 0.1 + (level * 0.02));
-
-        // Adjust spawn interval
-        clearInterval(enemySpawnInterval);
-        enemySpawnInterval = setInterval(spawnEnemy, enemySpawnRate);
-
-        // Visual feedback for level up
-        createExplosion(containerSize/2, containerSize/2);
-        gameArea.classList.add("shake");
-        setTimeout(() => gameArea.classList.remove("shake"), 500);
-      }
-    }
-
-    // Game over
-    function endGame() {
-      gameRunning = false;
-      clearInterval(enemySpawnInterval);
-      clearInterval(powerUpSpawnInterval);
-      finalScore.textContent = score;
-      gameOverScreen.style.display = "flex";
-    }
-
-    // Restart game
-    function restartGame() {
-      location.reload();
-    }
-
-    // Utility: random color
-    function getRandomColor() {
-      const hue = Math.floor(Math.random() * 360);
-      return `hsl(${hue}, 80%, 60%)`;
-    }
-
-    // Utility: random enemy appearance
-    function getRandomEnemyAppearance() {
-      const types = [
-        `radial-gradient(circle, ${getRandomColor()} 0%, ${getRandomColor()} 100%)`,
-        `linear-gradient(45deg, ${getRandomColor()}, ${getRandomColor()})`,
-        `repeating-linear-gradient(45deg, ${getRandomColor()}, ${getRandomColor()} 10px)`
-      ];
-      return types[Math.floor(Math.random() * types.length)];
-    }
-
-    // Initialize the game
-    function init() {
-      setupJoystick();
-      
-      // Game loop
-      setInterval(() => {
-        if (gameRunning) {
-          moveEnemies();
-          checkPowerUps();
-          
-          // Continuously move player if joystick is active
-          if (joystickActive) {
-            movePlayer();
-          }
-        }
-      }, 20);
-
-      setInterval(updateScore, 500);
-
-      // Start enemy spawning
-      enemySpawnInterval = setInterval(spawnEnemy, enemySpawnRate);
-      
-      // Start power-up spawning
-      powerUpSpawnInterval = setInterval(spawnPowerUp, powerUpSpawnRate);
-
-      // Start with 3 enemies
-      for (let i = 0; i < 3; i++) {
-        setTimeout(spawnEnemy, i * 500);
-      }
-    }
-
-    // Start the game
-    init();
-  </script>
+        // Simple form handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form submission handlers
+            const forms = document.querySelectorAll('.btn');
+            forms.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (this.closest('form') || this.type === 'submit') {
+                        e.preventDefault();
+                        alert('Thank you for your submission. Your voice matters!');
+                    }
+                });
+            });
+            
+            // Add fade-in animation to elements on scroll
+            const fadeElements = document.querySelectorAll('.fade-in');
+            
+            const fadeInOptions = {
+                threshold: 0.3,
+                rootMargin: "0px 0px -100px 0px"
+            };
+            
+            const fadeInObserver = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.style.opacity = 1;
+                    observer.unobserve(entry.target);
+                });
+            }, fadeInOptions);
+            
+            fadeElements.forEach(element => {
+                element.style.opacity = 0;
+                element.style.transition = 'opacity 0.8s ease';
+                fadeInObserver.observe(element);
+            });
+        });
+    </script>
 </body>
 </html>
